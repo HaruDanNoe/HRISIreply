@@ -5,7 +5,6 @@ import AdminDashboard from "./pages/AdminDashboard";
 import CoachDashboard from "./pages/CoachDashboard";
 import CoachAttendancePage from "./pages/CoachAttendancePage";
 import EmployeeDashboard from "./pages/EmployeeDashboard.jsx";
-import EmployeeAttendancePage from "./pages/EmployeeAttendancePage.jsx";
 
 const normalizePath = path => {
   if (!path || path === "/") return "/login";
@@ -26,8 +25,6 @@ const renderRoute = path => {
       return <CoachAttendancePage />;
     case "/employee":
       return <EmployeeDashboard />;
-    case "/employee/attendance":
-      return <EmployeeAttendancePage />;
     default:
       return <Login />;
   }

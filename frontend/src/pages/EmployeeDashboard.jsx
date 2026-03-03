@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { apiFetch } from "../api/api";
 import DashboardSidebar from "../components/DashboardSidebar";
 import useLiveDateTime from "../hooks/useLiveDateTime";
@@ -7,22 +7,25 @@ import { resolveAttendanceMainTag } from "../utils/attendanceTags";
 
 export default function EmployeeDashboard() {
   const statusTags = ["On Time", "Late", "Scheduled", "Off Scheduled", "Not scheduled"];
+  const navItems = ["Dashboard", "Team", "Attendance", "Schedule"];
   const [data, setData] = useState([]);
+  const [activeNav, setActiveNav] = useState("Team");
+  const sidebarNavItems = navItems.map(item => ({
+    label: item,
+    active: activeNav === item,
+    onClick: () => setActiveNav(item)
+  }));
   const [attendanceLog, setAttendanceLog] = useState({
     timeInAt: null,
     timeOutAt: null,
     tag: null
   });
+  const [attendanceHistory, setAttendanceHistory] = useState([]);
+  const [historyDateStartFilter, setHistoryDateStartFilter] = useState("");
+  const [historyDateEndFilter, setHistoryDateEndFilter] = useState("");
   const activeCluster = data[0];
   const dateTimeLabel = useLiveDateTime();
   const { user } = useCurrentUser();
-
-  const navItems = [
-    { label: "Dashboard", active: true },
-    { label: "Team" },
-    { label: "Attendance", onClick: () => (window.location.href = "/employee/attendance") },
-    { label: "Schedule" }
-  ];
 
   const normalizeSchedule = schedule => {
     if (!schedule) return schedule;
@@ -47,7 +50,12 @@ export default function EmployeeDashboard() {
     return `${startTime} ${startPeriod}–${endTime} ${endPeriod}`;
   };
 
-  const formatBreakTimeRange = (startTime, startPeriod, endTime, endPeriod) => {
+  const formatBreakTimeRange = (
+    startTime,
+    startPeriod,
+    endTime,
+    endPeriod
+  ) => {
     if (!startTime || !endTime) return "—";
     return `${startTime} ${startPeriod ?? ""}–${endTime} ${endPeriod ?? ""}`.trim();
   };
@@ -182,6 +190,47 @@ export default function EmployeeDashboard() {
     return { label: "Available", className: "status-available" };
   };
 
+  const formatClockTime = date => {
+    if (!date) return "—";
+    return new Intl.DateTimeFormat("en-US", {
+      hour: "numeric",
+      minute: "2-digit"
+    }).format(date);
+  };
+
+  const formatDateTimeLabel = value => {
+    const parsedDate = value instanceof Date ? value : parseSqlDateTime(value);
+    if (!parsedDate || Number.isNaN(parsedDate.getTime())) return "—";
+
+    return new Intl.DateTimeFormat("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit"
+    }).format(parsedDate);
+  };
+
+  const toDateInputValue = value => {
+    const parsedDate = value instanceof Date ? value : parseSqlDateTime(value);
+    if (!parsedDate || Number.isNaN(parsedDate.getTime())) return null;
+
+    const year = parsedDate.getFullYear();
+    const month = `${parsedDate.getMonth() + 1}`.padStart(2, "0");
+    const day = `${parsedDate.getDate()}`.padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
+  const toLocalSqlDateTime = date => {
+    const year = date.getFullYear();
+    const month = `${date.getMonth() + 1}`.padStart(2, "0");
+    const day = `${date.getDate()}`.padStart(2, "0");
+    const hours = `${date.getHours()}`.padStart(2, "0");
+    const minutes = `${date.getMinutes()}`.padStart(2, "0");
+    const seconds = `${date.getSeconds()}`.padStart(2, "0");
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+  };
+
   const parseSqlDateTime = value => {
     if (!value || typeof value !== "string") return null;
     const [datePart, timePart] = value.trim().split(" ");
@@ -195,6 +244,81 @@ export default function EmployeeDashboard() {
     }
 
     return new Date(year, month - 1, day, hours, minutes, Number.isNaN(seconds) ? 0 : seconds);
+  };
+
+  const persistAttendance = async nextAttendance => {
+    if (!activeCluster?.cluster_id) {
+      setAttendanceLog(nextAttendance);
+      return;
+    }
+
+    const response = await apiFetch("api/save_attendance.php", {
+      method: "POST",
+      body: JSON.stringify({
+        cluster_id: activeCluster.cluster_id,
+        ...nextAttendance,
+        timeInAt: nextAttendance.timeInAt ? toLocalSqlDateTime(nextAttendance.timeInAt) : null,
+        timeOutAt: nextAttendance.timeOutAt ? toLocalSqlDateTime(nextAttendance.timeOutAt) : null
+      })
+    });
+
+    const savedAttendance = response.attendance ?? {};
+    setAttendanceLog({
+      timeInAt: parseSqlDateTime(savedAttendance.timeInAt),
+      timeOutAt: parseSqlDateTime(savedAttendance.timeOutAt),
+      tag: savedAttendance.tag ?? null
+    });
+
+    const history = await apiFetch("api/employee_attendance_history.php");
+    setAttendanceHistory(history);
+  };
+
+  const handleTimeIn = async () => {
+    if (!canUseAttendanceControls) return;
+    if (attendanceLog.timeInAt && !attendanceLog.timeOutAt) return;
+
+    const now = new Date();
+    const daySchedule = getTodaySchedule();
+
+    if (!daySchedule) {
+      await persistAttendance({
+        timeInAt: now,
+        timeOutAt: null,
+        tag: "Late"
+      });
+      return;
+    }
+
+    const scheduledStartMinutes = toMinutes(daySchedule.startTime, daySchedule.startPeriod);
+    if (scheduledStartMinutes === null) {
+      await persistAttendance({
+        timeInAt: now,
+        timeOutAt: null,
+        tag: "Late"
+      });
+      return;
+    }
+
+    const nowMinutes = now.getHours() * 60 + now.getMinutes();
+    const lateThreshold = scheduledStartMinutes + 15;
+    const tag = nowMinutes <= lateThreshold ? "On Time" : "Late";
+
+   await persistAttendance({
+      timeInAt: now,
+      timeOutAt: null,
+      tag
+    });
+  };
+
+  const handleTimeOut = async () => {
+    if (!canUseAttendanceControls) return;
+    if (!attendanceLog.timeInAt || attendanceLog.timeOutAt) return;
+
+    const nextAttendance = {
+      ...attendanceLog,
+      timeOutAt: new Date()
+    };
+    await persistAttendance(nextAttendance);
   };
 
   const getStatusTag = (statusLabel, isScheduledToday) => {
@@ -229,6 +353,11 @@ export default function EmployeeDashboard() {
     timeInAt: attendanceLog.timeInAt,
     fallbackTag: getStatusTag(currentStatus.label, hasScheduleToday)
   });
+  const hasActiveTimeIn = Boolean(attendanceLog.timeInAt && !attendanceLog.timeOutAt);
+  const hasTeamCluster = Boolean(activeCluster?.cluster_id);
+  const canUseAttendanceControls = hasTeamCluster && hasScheduleToday;
+  const canClickTimeIn = canUseAttendanceControls && !hasActiveTimeIn;
+  const canClickTimeOut = canUseAttendanceControls && hasActiveTimeIn;
 
   useEffect(() => {
     apiFetch("api/employee_clusters.php").then(response => {
@@ -246,7 +375,27 @@ export default function EmployeeDashboard() {
         });
       }
     });
+
+    apiFetch("api/employee_attendance_history.php").then(response => {
+      setAttendanceHistory(response);
+    });
   }, []);
+
+  const filteredAttendanceHistory = useMemo(() => {
+    if (!historyDateStartFilter && !historyDateEndFilter) return attendanceHistory;
+
+    const activeStartDate = historyDateStartFilter || null;
+    const activeEndDate = historyDateEndFilter || null;
+
+    return attendanceHistory.filter(item => {
+      const entryDate = toDateInputValue(item.time_in_at ?? item.time_out_at ?? item.updated_at);
+      if (!entryDate) return false;
+
+      if (activeStartDate && entryDate < activeStartDate) return false;
+      if (activeEndDate && entryDate > activeEndDate) return false;
+      return true;
+    });
+  }, [attendanceHistory, historyDateEndFilter, historyDateStartFilter]);
 
   const handleLogout = async () => {
     try {
@@ -265,109 +414,244 @@ export default function EmployeeDashboard() {
         avatar="EM"
         roleLabel="Employee"
         userName={user?.fullname}
-        navItems={navItems}
+        navItems={sidebarNavItems}
         onLogout={handleLogout}
       />
 
       <main className="main">
         <header className="topbar">
           <div>
-            <h2>DASHBOARD</h2>
-            <div className="section-title">My team cluster overview</div>
+            <h2>{activeNav.toUpperCase()}</h2>
+            <div className="section-title">
+              {activeNav === "Dashboard"
+                ? "Employee time tracking"
+                : activeNav === "Attendance"
+                  ? "Attendance history"
+                  : "My team cluster overview"}
+            </div>
           </div>
           <span className="datetime">{dateTimeLabel}</span>
         </header>
 
         <section className="content content-muted">
-          <div className="employee-card">
-            <div className="employee-card-header">
-              <div className="employee-card-title">My Team Cluster Details</div>
-            </div>
-            <div className="employee-card-body">
-              <div className="employee-overview-grid">
-                <div className="employee-field employee-highlight-field">
-                  <div className="employee-field-label">Cluster Name</div>
-                  <div className="employee-field-value">{activeCluster?.cluster_name ?? "Not assigned"}</div>
+            {activeNav === "Dashboard" && (
+            <div className="employee-card employee-attendance-card">
+              <div className="employee-card-header">
+                <div className="employee-card-title">Time In / Time Out</div>
+              </div>
+              <div className="employee-card-body employee-attendance-body">
+                <p className="employee-attendance-copy">
+                  This control marks your status as <strong>On Time</strong> when you time in on schedule or within 15 minutes after start time.
+                </p>
+                {!hasTeamCluster && (
+                  <p className="employee-attendance-copy">
+                    You need to be assigned to a team cluster before you can time in or time out.
+                  </p>
+                )}
+                {hasTeamCluster && !hasScheduleToday && (
+                  <p className="employee-attendance-copy">
+                    You can only time in and time out on days when you have an assigned schedule.
+                  </p>
+                )}
+                <div className="employee-attendance-actions">
+                  <button type="button" className="btn primary" onClick={handleTimeIn} disabled={!canClickTimeIn}>
+                    Time In
+                  </button>
+                  <button type="button" className="btn secondary" onClick={handleTimeOut} disabled={!canClickTimeOut}>
+                    Time Out
+                  </button>
                 </div>
-                <div className="employee-field employee-highlight-field">
-                  <div className="employee-field-label">Team Coach</div>
-                  <div className="employee-field-value">{activeCluster?.coach_name ?? "Pending"}</div>
-                </div>
-                <div className="employee-field employee-inline-stat">
-                  <div className="employee-field-label">Assigned Days</div>
-                  <div className="employee-field-value employee-stat-value">{scheduleDays.length}</div>
-                </div>
-                <div className="employee-field employee-inline-stat">
-                  <div className="employee-field-label">Weekly Status</div>
-                  <div className="employee-field-value employee-stat-value">
-                    {scheduleDays.length > 0 ? "Schedule set" : "Pending"}
+                <div className="employee-attendance-log">
+                  <div><strong>Time In:</strong> {formatClockTime(attendanceLog.timeInAt)}</div>
+                  <div><strong>Time Out:</strong> {formatClockTime(attendanceLog.timeOutAt)}</div>
+                  <div>
+                    <strong>Status Tag:</strong>{" "}
+                    <span className={`member-status-tag ${attendanceLog.tag ? "is-active" : ""}`}>
+                      {attendanceLog.tag ?? (hasScheduleToday ? "Scheduled" : "Not scheduled")}
+                    </span>
                   </div>
                 </div>
               </div>
             </div>
-            <div className="employee-field employee-highlight-field">
-              <div className="employee-field-label">Latest Attendance Tag</div>
-              <div className="employee-field-value">
-                <span className={`member-status-tag ${activeAttendanceTag ? "is-active" : ""}`}>
-                  {activeAttendanceTag ?? (hasScheduleToday ? "Scheduled" : "Not scheduled")}
-                </span>
-              </div>
-            </div>
-            <div className="employee-card-footer"></div>
-          </div>
+            )}
 
-          <div className="employee-card">
-            <div className="employee-card-header">
-              <div className="employee-card-title">My Schedule</div>
-            </div>
-            <div className="employee-card-body">
-              <div className="active-members-schedule-table employee-schedule-table" role="table" aria-label="My schedule">
-                <div className="active-members-schedule-header" role="row">
-                  <span role="columnheader">Member</span>
-                  {dayLabels.map(day => (
-                    <span key={`${day}-header`} role="columnheader">{day}</span>
-                  ))}
-                  <span role="columnheader">Status and Tags</span>
-                </div>
-                <div className="active-members-schedule-row" role="row">
-                  <div className="active-members-owner" role="cell">
-                    {user?.fullname ?? "Employee"}
+          {data.length === 0 && activeNav !== "Attendance" && (
+            <div className="empty-state">No team cluster details available.</div>
+          )}
+
+          {(activeNav === "Attendance" || data.length > 0) && activeNav !== "Dashboard" && (
+            <div className="employee-panel">
+              {activeNav === "Attendance" && (
+                <div className="employee-card">
+                  <div className="employee-card-header">
+                    <div className="employee-card-title">Attendance History</div>
                   </div>
-                  {dayLabels.map(day => {
-                    const dayInfo = formatEmployeeDayTime(day);
+                  <div className="employee-card-body">
+                    {attendanceHistory.length === 0 ? (
+                      <div className="empty-state">No attendance records yet.</div>
+                    ) : (
+                      <>
+                        <div className="attendance-history-range-filter" role="group" aria-label="Filter attendance history by date range">
+                          <label className="attendance-history-filter" htmlFor="employee-attendance-history-date-filter-start">
+                            <span>From</span>
+                            <input
+                              id="employee-attendance-history-date-filter-start"
+                              type="date"
+                              value={historyDateStartFilter}
+                              onChange={event => setHistoryDateStartFilter(event.target.value)}
+                            />
+                          </label>
+                          <label className="attendance-history-filter" htmlFor="employee-attendance-history-date-filter-end">
+                            <span>To</span>
+                            <input
+                              id="employee-attendance-history-date-filter-end"
+                              type="date"
+                              value={historyDateEndFilter}
+                              onChange={event => setHistoryDateEndFilter(event.target.value)}
+                            />
+                          </label>
+                        </div>
+                        {filteredAttendanceHistory.length > 0 ? (
+                          <div className="employee-attendance-history-table" role="table" aria-label="Attendance history">
+                            <div className="employee-attendance-history-header" role="row">
+                              <span role="columnheader">Date</span>
+                              <span role="columnheader">Cluster</span>
+                              <span role="columnheader">Time In</span>
+                              <span role="columnheader">Time Out</span>
+                              <span role="columnheader">Tag</span>
+                            </div>
+                            {filteredAttendanceHistory.map(item => (
+                              <div key={item.id} className="employee-attendance-history-row" role="row">
+                                <span role="cell">{formatDateTimeLabel(item.time_in_at ?? item.updated_at)}</span>
+                                <span role="cell">{item.cluster_name ?? "—"}</span>
+                                <span role="cell">{formatDateTimeLabel(item.time_in_at)}</span>
+                                <span role="cell">{formatDateTimeLabel(item.time_out_at)}</span>
+                                <span role="cell">
+                                  <span className={`member-status-tag ${item.tag ? "is-active" : ""}`}>
+                                    {item.tag ?? "Pending"}
+                                  </span>
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="empty-state">No attendance records match the selected date range.</div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </div>
+                 )}
 
-                    if (typeof dayInfo === "string") {
-                      return (
-                        <div key={`${day}-value`} role="cell">{dayInfo}</div>
-                      );
-                    }
-
-                    return (
-                      <div key={`${day}-value`} role="cell" className="active-day-cell">
-                        <div>{dayInfo.shift}</div>
-                        <span className="active-day-tag lunch-tag">Lunch break: {dayInfo.lunchBreak}</span>
-                        <span className="active-day-tag break-tag">Break time: {dayInfo.breakTime}</span>
+              {activeNav !== "Attendance" && (
+                <>
+              <div className="employee-card">
+                <div className="employee-card-header">
+                  <div className="employee-card-title">My Team Cluster Details</div>
+                </div>
+                <div className="employee-card-body">
+                  <div className="employee-overview-grid">
+                    <div className="employee-field employee-highlight-field">
+                      <div className="employee-field-label">Cluster Name</div>
+                      <div className="employee-field-value">
+                        {activeCluster?.cluster_name ?? "Not assigned"}
                       </div>
-                    );
-                  })}
-                  <div role="cell" className="member-status-and-tags-cell">
-                    <span className={`member-status-pill ${currentStatus.className}`}>{currentStatus.label}</span>
-                    <div className="member-status-tag-list" aria-label="Status tags">
-                      {statusTags.map(tag => (
-                        <span
-                          key={`employee-${tag}`}
-                          className={`member-status-tag ${activeAttendanceTag === tag ? "is-active" : ""}`}
-                        >
-                          {tag}
-                        </span>
-                      ))}
+                    </div>
+                  <div className="employee-field employee-highlight-field">
+                      <div className="employee-field-label">Team Coach</div>
+                      <div className="employee-field-value">
+                        {activeCluster?.coach_name ?? "Pending"}
+                      </div>
+                    </div>
+                    <div className="employee-field employee-inline-stat">
+                      <div className="employee-field-label">Assigned Days</div>
+                      <div className="employee-field-value employee-stat-value">
+                        {scheduleDays.length}
+                      </div>
+                    </div>
+                    <div className="employee-field employee-inline-stat">
+                      <div className="employee-field-label">Weekly Status</div>
+                      <div className="employee-field-value employee-stat-value">
+                        {scheduleDays.length > 0 ? "Schedule set" : "Pending"}
+                      </div>
                     </div>
                   </div>
                 </div>
+                <div className="employee-field employee-highlight-field">
+                      <div className="employee-field-label">Latest Attendance Tag</div>
+                      <div className="employee-field-value">
+                        <span className={`member-status-tag ${activeAttendanceTag ? "is-active" : ""}`}>
+                          {activeAttendanceTag ?? (hasScheduleToday ? "Scheduled" : "Not scheduled")}
+                        </span>
+                      </div>
+                    </div>
+                <div className="employee-card-footer">
+                </div>
               </div>
-              <div className="employee-schedule-caption"></div>
+
+          <div className="employee-card">
+                <div className="employee-card-header">
+                  <div className="employee-card-title">My Schedule</div>
+                </div>
+                <div className="employee-card-body">
+                  <div className="active-members-schedule-table employee-schedule-table" role="table" aria-label="My schedule">
+                    <div className="active-members-schedule-header" role="row">
+                      <span role="columnheader">Member</span>
+                      {dayLabels.map(day => (
+                        <span key={`${day}-header`} role="columnheader">{day}</span>
+                      ))}
+                      <span role="columnheader">Status and Tags</span>
+                    </div>
+                    <div className="active-members-schedule-row" role="row">
+                      <div className="active-members-owner" role="cell">
+                        {user?.fullname ?? "Employee"}
+                      </div>
+                      {dayLabels.map(day => {
+                        const dayInfo = formatEmployeeDayTime(day);
+
+                        if (typeof dayInfo === "string") {
+                          return (
+                            <div key={`${day}-value`} role="cell">{dayInfo}</div>
+                          );
+                        }
+
+                        return (
+                          <div key={`${day}-value`} role="cell" className="active-day-cell">
+                            <div>{dayInfo.shift}</div>
+                            <span className="active-day-tag lunch-tag">
+                              Lunch break: {dayInfo.lunchBreak}
+                            </span>
+                            <span className="active-day-tag break-tag">
+                              Break time: {dayInfo.breakTime}
+                            </span>
+                          </div>
+                        );
+                      })}
+                      <div role="cell" className="member-status-and-tags-cell">
+                        <span className={`member-status-pill ${currentStatus.className}`}>
+                          {currentStatus.label}
+                        </span>
+                        <div className="member-status-tag-list" aria-label="Status tags">
+                          {statusTags.map(tag => (
+                            <span
+                              key={`employee-${tag}`}
+                              className={`member-status-tag ${activeAttendanceTag === tag ? "is-active" : ""}`}
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="employee-schedule-caption">
+                  </div>
+                </div>
+              </div>
+              </>
+              )}
             </div>
-          </div>
+          )}
         </section>
       </main>
     </div>
