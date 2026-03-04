@@ -32,7 +32,7 @@ $res = $conn->query(
             WHERE al2.cluster_id = cm.cluster_id
               AND al2.employee_id = cm.employee_id
               AND DATE(COALESCE(al2.time_in_at, al2.time_out_at, al2.updated_at)) = '$escapedAttendanceDate'
-            ORDER BY COALESCE(al2.time_in_at, al2.updated_at) DESC, al2.id DESC
+           ORDER BY COALESCE(al2.time_in_at, al2.time_out_at, al2.updated_at) DESC, al2.id DESC
             LIMIT 1
         )
      WHERE cm.cluster_id=$cluster_id"

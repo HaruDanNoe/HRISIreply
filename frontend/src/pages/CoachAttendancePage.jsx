@@ -5,10 +5,36 @@ import useLiveDateTime from "../hooks/useLiveDateTime";
 import useCurrentUser from "../hooks/useCurrentUser";
 import { normalizeSchedule, parseDateValue, resolveAttendanceMainTag } from "../utils/attendanceTags";
 
+const parseDateTimeValue = value => {
+  if (!value) return null;
+  if (value instanceof Date) return Number.isNaN(value.getTime()) ? null : value;
+
+  const raw = String(value).trim();
+  const sqlMatch = raw.match(
+    /^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}):(\d{2})(?::(\d{2}))?)?$/
+  );
+
+  if (sqlMatch) {
+    const [, year, month, day, hour = "00", minute = "00", second = "00"] = sqlMatch;
+    const parsedDate = new Date(
+      Number(year),
+      Number(month) - 1,
+      Number(day),
+      Number(hour),
+      Number(minute),
+      Number(second)
+    );
+    return Number.isNaN(parsedDate.getTime()) ? null : parsedDate;
+  }
+
+  const fallbackDate = new Date(raw);
+  return Number.isNaN(fallbackDate.getTime()) ? null : fallbackDate;
+};
+
 const formatDateTime = value => {
   if (!value) return "—";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
+  const date = parseDateTimeValue(value);
+  if (!date) return value;
   return date.toLocaleString();
 };
 
@@ -100,8 +126,8 @@ export default function CoachAttendancePage() {
 
   const toDateInputValue = value => {
     if (!value) return null;
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return null;
+    const date = parseDateTimeValue(value);
+    if (!date) return null;
 
     const year = date.getFullYear();
     const month = `${date.getMonth() + 1}`.padStart(2, "0");
@@ -111,9 +137,8 @@ export default function CoachAttendancePage() {
 
   const toDateTimeLocalValue = value => {
     if (!value) return "";
-    const parsedValue = typeof value === "string" ? value.replace(" ", "T") : value;
-    const date = new Date(parsedValue);
-    if (Number.isNaN(date.getTime())) return "";
+    const date = parseDateTimeValue(value);
+    if (!date) return "";
 
     const year = date.getFullYear();
     const month = `${date.getMonth() + 1}`.padStart(2, "0");

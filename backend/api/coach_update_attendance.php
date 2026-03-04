@@ -43,13 +43,13 @@ if (!$memberCheck || $memberCheck->num_rows === 0) {
 $timeInSql = $timeInAt ? date("Y-m-d H:i:s", strtotime($timeInAt)) : null;
 $timeOutSql = $timeOutAt ? date("Y-m-d H:i:s", strtotime($timeOutAt)) : null;
 
-if ($timeInAt && !$timeInSql) {
+if ($timeInAt !== null && $timeInAt !== "" && !$timeInSql) {
     http_response_code(400);
     echo json_encode(["error" => "Invalid time-in value."]);
     exit;
 }
 
-if ($timeOutAt && !$timeOutSql) {
+if ($timeOutAt !== null && $timeOutAt !== "" && !$timeOutSql) {
     http_response_code(400);
     echo json_encode(["error" => "Invalid time-out value."]);
     exit;
@@ -81,21 +81,44 @@ if (!$attendanceCheck || $attendanceCheck->num_rows === 0) {
     exit;
 }
 
-$conn->query(
+$updateResult = $conn->query(
     "UPDATE attendance_logs
      SET time_in_at=$timeInValue,
          time_out_at=$timeOutValue,
          tag=$tagValue,
-         note=$noteValue
+         note=$noteValue,
+         updated_at=CURRENT_TIMESTAMP
      WHERE id=$attendanceId"
 );
+
+if (!$updateResult) {
+    http_response_code(500);
+    echo json_encode(["error" => "Unable to update attendance record."]);
+    exit;
+}
+
+$updatedAttendanceRes = $conn->query(
+    "SELECT id,
+            time_in_at,
+            time_out_at,
+            tag,
+            note,
+            updated_at
+     FROM attendance_logs
+     WHERE id=$attendanceId
+     LIMIT 1"
+);
+
+$updatedAttendance = $updatedAttendanceRes ? $updatedAttendanceRes->fetch_assoc() : null;
 
 echo json_encode([
     "success" => true,
     "attendance" => [
-        "timeInAt" => $timeInSql,
-        "timeOutAt" => $timeOutSql,
-        "tag" => $tag,
-        "note" => $note
+        "id" => $updatedAttendance ? (int)$updatedAttendance["id"] : $attendanceId,
+        "timeInAt" => $updatedAttendance["time_in_at"] ?? $timeInSql,
+        "timeOutAt" => $updatedAttendance["time_out_at"] ?? $timeOutSql,
+        "tag" => $updatedAttendance["tag"] ?? $tag,
+        "note" => $updatedAttendance["note"] ?? $note,
+        "updatedAt" => $updatedAttendance["updated_at"] ?? null
     ]
 ]);
