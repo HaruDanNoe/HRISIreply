@@ -1250,6 +1250,7 @@ body {
 .schedule-day-grid {
   display: grid;
 
+  gap: 10px;
 }
 
 .schedule-helper-text {
@@ -1292,20 +1293,22 @@ body {
 
 .schedule-day-row {
   display: grid;
-  grid-template-columns: minmax(110px, 0.35fr) 1fr;
-  align-items: center;
+  grid-template-columns: minmax(130px, 0.28fr) 1fr;
+  align-items: start;
   gap: 14px;
-  padding: 12px;
-  border-bottom: 1px solid #edf2f7;
+  padding: 14px;
+  border: 1px solid #e2e8f0;
   border-radius: 12px;
+  background: #fff;
 }
 
 .schedule-day-row:last-child {
-  border-bottom: none;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .schedule-day-row:hover {
   background: #f8fafc;
+  border-color: #cbd5e1;
 }
 
 .schedule-day-header {
@@ -1348,35 +1351,17 @@ body {
 
 .schedule-time-grid {
   display: grid;
-  grid-template-columns: minmax(140px, 1.1fr) repeat(7, minmax(150px, 1fr));
-  gap: 25px;
-  align-items: end;
+  grid-template-columns: repeat(auto-fit, minmax(165px, 1fr));
+  gap: 12px;
+  align-items: start;
 }
 
 .schedule-time-label {
   font-size: 12px;
   font-weight: 700;
   color: #475569;
+  margin-bottom: 6px;
 }
-
-.schedule-time-label-g1 {
-  font-size: 12px;
-  font-weight: 700;
-  color: #475569;
-  margin-left: 50px;
-}
-
-.schedule-time-label-g2 {
-  font-size: 12px;
-  font-weight: 700;
-  color: #475569;
-  margin-left: 50px;
-}
-
-.schedule-time-group1 {
-  margin-left: 50px;
-}
-
 
 .schedule-time-row {
   display: grid;
@@ -1384,22 +1369,14 @@ body {
   gap: 2px;
 }
 
-.schedule-time-row-g1 {
+.schedule-start-time {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 2px;
-  margin-left: 50px;
-}
-
-.schedule-time-row-g2 {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 2px;
-  margin-left: 50px;
-}
-
-.schedule-time-row.schedule-start-time {
   grid-template-columns: 1fr 0.55fr;
+  gap: 8px;
+}
+
+.schedule-field {
+  align-content: start;
 }
 
 .schedule-time-grid select {
@@ -1421,15 +1398,7 @@ body {
 }
 
 .schedule-time-grid select.schedule-break-select {
-  background-color: #e8f0fe;
-  max-width: 170px;
-  justify-self: start;
-}
-
-.schedule-time-grid select.schedule-break-select1 {
-  background-color: #f2ebff;
-  max-width: 170px;
-  justify-self: start;
+  background-color: #f5f3ff;
 }
 
 .schedule-time-grid select:hover {
@@ -1451,16 +1420,14 @@ body {
   .schedule-day-row {
     grid-template-columns: 1fr;
     gap: 8px;
-    padding: 10px 0;
-    border-radius: 0;
-    background: transparent;
+    padding: 12px;
   }
 
   .schedule-time-grid {
     grid-template-columns: 1fr;
   }
 
-  .schedule-time-row.schedule-start-time {
+  .schedule-start-time {
     grid-template-columns: 1fr;
   }
 }

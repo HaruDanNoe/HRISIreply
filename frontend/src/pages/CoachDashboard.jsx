@@ -1371,14 +1371,9 @@ useEffect(() => {
                           </div>
                           {isWorkingDay ? (
                             <div className="schedule-time-grid">
-                              <div className="schedule-time-label">Start time</div>
-                              <div className="schedule-time-label">End time</div>
-                              <div className="schedule-time-label">Shift type</div>
-                              <div className="schedule-time-label">Work setup</div>
-                              <div className="schedule-time-label-g2">Break time start</div>
-                              <div className="schedule-time-label">Break time end</div>
-
-                              <div className="schedule-time-row schedule-start-time">
+                              <div className="schedule-time-row schedule-field">
+                                <div className="schedule-time-label">Start time</div>
+                                <div className="schedule-start-time">
                                 <select
                                   value={daySchedule.startTime}
                                   onChange={event =>
@@ -1400,9 +1395,11 @@ useEffect(() => {
                                   <option value="AM">AM</option>
                                   <option value="PM">PM</option>
                                 </select>
+                                </div>
                               </div>
 
-                              <div className="schedule-time-row">
+                              <div className="schedule-time-row schedule-field">
+                                <div className="schedule-time-label">End time</div>
                                 <select
                                   value={`${daySchedule.endTime}|${daySchedule.endPeriod}`}
                                   onChange={event =>
@@ -1420,7 +1417,8 @@ useEffect(() => {
                                 </select>
                               </div>
 
-                              <div className="schedule-time-row">
+                              <div className="schedule-time-row schedule-field">
+                                <div className="schedule-time-label">Shift type</div>
                                 <select
                                   value={daySchedule.shiftType}
                                   onChange={event =>
@@ -1435,7 +1433,8 @@ useEffect(() => {
                                 </select>
                               </div>
 
-                              <div className="schedule-time-row">
+                              <div className="schedule-time-row schedule-field">
+                                <div className="schedule-time-label">Work setup</div>
                                 <select
                                   value={daySchedule.workSetup}
                                   onChange={event =>
@@ -1450,9 +1449,10 @@ useEffect(() => {
                                 </select>
                               </div>
 
-                              <div className="schedule-time-row-g2">
+                              <div className="schedule-time-row schedule-field">
+                                <div className="schedule-time-label">Break time start</div>
                                 <select
-                                  className="schedule-break-select1"
+                                  className="schedule-break-select"
                                   value={`${daySchedule.breakStartTime}|${daySchedule.breakStartPeriod}`}
                                   onChange={event =>
                                     handleChangeDayTime(day, "breakStart", event.target.value)
@@ -1469,9 +1469,10 @@ useEffect(() => {
                                 </select>
                               </div>
 
-                              <div className="schedule-time-row">
+                              <div className="schedule-time-row schedule-field">
+                                <div className="schedule-time-label">Break time end</div>
                                 <select
-                                  className="schedule-break-select1"
+                                  className="schedule-break-select"
                                   value={`${daySchedule.breakEndTime}|${daySchedule.breakEndPeriod}`}
                                   onChange={event =>
                                     handleChangeDayTime(day, "breakEnd", event.target.value)
