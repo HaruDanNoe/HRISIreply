@@ -434,6 +434,7 @@ export default function EmployeeDashboard() {
                 onTimeIn: handleTimeIn,
                 onTimeOut: handleTimeOut
               }}
+              schedule={activeCluster?.schedule ?? null}
             />
           )}
 

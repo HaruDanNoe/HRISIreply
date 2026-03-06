@@ -48,20 +48,47 @@ function AnnouncementCard() {
   );
 }
 
-function ShiftCard() {
+function formatShiftTime(time, period) {
+  if (!time) return "--";
+  return `${time} ${period ?? ""}`.trim();
+}
+
+function getTodayShiftSchedule(schedule) {
+  if (!schedule || typeof schedule !== "object" || Array.isArray(schedule)) {
+    return null;
+  }
+
+  const todayKey = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][new Date().getDay()];
+  const assignedDays = Array.isArray(schedule.days) ? schedule.days : [];
+  if (!assignedDays.includes(todayKey)) {
+    return null;
+  }
+
+  const daySchedule = schedule.daySchedules?.[todayKey];
+  if (daySchedule && typeof daySchedule === "object") {
+    return daySchedule;
+  }
+
+  return schedule;
+}
+
+function ShiftCard({ schedule = null }) {
+  const shiftSchedule = getTodayShiftSchedule(schedule);
+  const startTime = formatShiftTime(shiftSchedule?.startTime, shiftSchedule?.startPeriod);
+  const endTime = formatShiftTime(shiftSchedule?.endTime, shiftSchedule?.endPeriod);
+  
   return (
     <div className="card shift-card">
       <div className="shift-columns">
         <div>
           <div className="label">Shift Start Time</div>
-          <div className="value">9:00 AM</div>
+          <div className="value">{startTime}</div>
         </div>
         <div>
-          <div className="label">Shift Start End</div>
-          <div className="value">6:00 PM</div>
+          <div className="label">Shift End Time</div>
+          <div className="value">{endTime}</div>
         </div>
       </div>
-      <div className="remaining">8 hrs Remaining Time</div>
     </div>
   );
 }
@@ -140,7 +167,11 @@ function MemberStatusCard() {
   );
 }
 
-export default function MainDashboard({ attendanceControls = null, showMemberStatusCard = false }) {
+export default function MainDashboard({
+  attendanceControls = null,
+  showMemberStatusCard = false,
+  schedule = null,
+}) {
   const [timeInStart, setTimeInStart] = useState(null);
   const [now, setNow] = useState(new Date());
 
@@ -230,7 +261,7 @@ export default function MainDashboard({ attendanceControls = null, showMemberSta
           canToggleTimeIn={canToggleTimeIn}
         />
         <AnnouncementCard />
-        <ShiftCard />
+        <ShiftCard schedule={schedule} />
         <CalendarCard calendarData={calendarData} />
         <HolidayCard />
         <SummaryCard timeInStart={activeTimeIn} totalHours={totalHours} />
