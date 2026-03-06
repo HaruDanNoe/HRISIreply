@@ -910,7 +910,7 @@ useEffect(() => {
       <main className="main">
         {activeNav === "Dashboard" ? (
           <section className="content">
-            <MainDashboard />
+            <MainDashboard showMemberStatusCard />
           </section>
         ) : (
           <>

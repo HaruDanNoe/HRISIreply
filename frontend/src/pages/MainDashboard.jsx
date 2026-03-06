@@ -140,7 +140,7 @@ function MemberStatusCard() {
   );
 }
 
-export default function MainDashboard({ attendanceControls = null }) {
+export default function MainDashboard({ attendanceControls = null, showMemberStatusCard = false }) {
   const [timeInStart, setTimeInStart] = useState(null);
   const [now, setNow] = useState(new Date());
 
@@ -234,7 +234,7 @@ export default function MainDashboard({ attendanceControls = null }) {
         <CalendarCard calendarData={calendarData} />
         <HolidayCard />
         <SummaryCard timeInStart={activeTimeIn} totalHours={totalHours} />
-        <MemberStatusCard />
+        {showMemberStatusCard ? <MemberStatusCard /> : null}
       </div>
     </>
   );
