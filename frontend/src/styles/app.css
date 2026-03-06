@@ -1950,11 +1950,13 @@ body {
   align-items: start;
 }
 
-.card {
+.dashboard-grid > .card {
   background: #d4d4d4;
   border: 1px solid #cecece;
   padding: 12px;
   min-height: 70px;
+  margin-bottom: 0;
+  display: block;
   box-sizing: border-box;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.16);
   border-radius: 8px;
@@ -1963,8 +1965,21 @@ body {
 
 @media (min-width: 1201px) {
   .dashboard-grid {
-    min-height: calc(100vh - 120px);
-    align-content: space-between;
+    grid-template-rows: 190px 82px 106px 112px;
+    align-items: stretch;
+    align-content: start;
+  }
+
+  .dashboard-grid .time-card,
+  .dashboard-grid .announcement-card,
+  .dashboard-grid .break-card,
+  .dashboard-grid .shift-card,
+  .dashboard-grid .calendar-card,
+  .dashboard-grid .holiday-card,
+  .dashboard-grid .summary-card,
+  .dashboard-grid .member-card {
+    height: auto;
+    min-height: 0;
   }
 }
 
@@ -1975,35 +1990,13 @@ body {
 
   .dashboard-grid {
     grid-template-columns: 1.35fr 1.12fr 1.12fr;
+    grid-template-rows: 236px 104px 146px 148px;
     column-gap: 12px;
     row-gap: 12px;
   }
 
   .dashboard-grid .card {
     padding: 14px;
-  }
-
-  .dashboard-grid .time-card,
-  .dashboard-grid .announcement-card {
-    height: 236px;
-  }
-
-  .dashboard-grid .break-card {
-    height: 104px;
-  }
-
-  .dashboard-grid .shift-card {
-    min-height: 144px;
-  }
-
-  .dashboard-grid .calendar-card,
-  .dashboard-grid .holiday-card {
-    height: 262px;
-  }
-
-  .dashboard-grid .summary-card,
-  .dashboard-grid .member-card {
-    height: 148px;
   }
 
   .dashboard-grid .time-counter {
@@ -2023,35 +2016,13 @@ body {
 
   .dashboard-grid {
     grid-template-columns: 1.36fr 1.14fr 1.14fr;
+    grid-template-rows: 266px 116px 164px 160px;
     column-gap: 14px;
     row-gap: 12px;
   }
 
   .dashboard-grid .card {
     padding: 16px;
-  }
-
-  .dashboard-grid .time-card,
-  .dashboard-grid .announcement-card {
-    height: 266px;
-  }
-
-  .dashboard-grid .break-card {
-    height: 116px;
-  }
-
-  .dashboard-grid .shift-card {
-    min-height: 158px;
-  }
-
-  .dashboard-grid .calendar-card,
-  .dashboard-grid .holiday-card {
-    height: 292px;
-  }
-
-  .dashboard-grid .summary-card,
-  .dashboard-grid .member-card {
-    height: 160px;
   }
 
   .dashboard-grid .time-counter {
