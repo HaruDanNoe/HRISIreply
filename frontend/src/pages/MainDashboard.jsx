@@ -1,3 +1,5 @@
+import { useEffect, useMemo, useState } from "react";
+
 function DashboardHeader({ headerTime, headerDate }) {
   return (
     <section className="dashboard-header">
@@ -10,90 +12,83 @@ function DashboardHeader({ headerTime, headerDate }) {
 }
 
 function TimeCard({
-  autoTimeOut,
-  setAutoTimeOut,
-  timeInputDisplay,
   counterDisplay,
-  timeInStart,
+  hasActiveTimeIn,
   onToggleTimeIn,
+  canToggleTimeIn,
 }) {
   return (
     <div className="card time-card">
       <div className="time-panel">
-        <div className="time-panel-row">
-          <span className="time-auto-label">AUTO-TIME OUT</span>
-          <button
-            type="button"
-            className={`time-switch ${autoTimeOut ? 'on' : ''}`}
-            aria-label="Auto time out"
-            onClick={() => setAutoTimeOut((prev) => !prev)}
-          >
-            <span className="time-switch-knob" />
-          </button>
-        </div>
-
-        <div className="time-input">{timeInputDisplay}</div>
         <div className="time-counter">{counterDisplay}</div>
 
-        <button type="button" className="time-in-btn" onClick={onToggleTimeIn}>
-          {timeInStart ? 'Time Out' : 'Time In'}
+        <button
+          type="button"
+          className="time-in-btn"
+          onClick={onToggleTimeIn}
+          disabled={!canToggleTimeIn}
+        >
+          {hasActiveTimeIn ? "Time Out" : "Time In"}
         </button>
       </div>
     </div>
   );
 }
 
-function AnnouncementCard({ announcements }) {
+function AnnouncementCard() {
   return (
     <div className="card announcement-card">
       <div className="card-top">
         <span>Announcement</span>
         <button type="button" className="pill-btn">+ Announcement</button>
       </div>
-      <ul className="list-items announcement-list">
-        {announcements.map((item) => (
-          <li key={item.title} className="announcement-item">
-            <span className={`announcement-tag ${item.type.toLowerCase()}`}>{item.type}</span>
-            <div className="announcement-copy">
-              <div className="announcement-title">{item.title}</div>
-              <div className="announcement-meta">{item.meta}</div>
-            </div>
-          </li>
-        ))}
-      </ul>
+      <ul className="list-items announcement-list" aria-label="No announcements yet" />
       <div className="mini-actions">✎&nbsp;&nbsp;◷</div>
     </div>
   );
 }
 
-function BreakCard({ onBreakClick, breakStarted = false }) {
-  return (
-    <div className="card break-card">
-      <div className="card-top compact">
-        <span>Break</span>
-        <span className="toggle-wrap">Auto-Stop <span className="toggle-dot">●</span></span>
-      </div>
-      <button type="button" className="start-btn" onClick={onBreakClick}>
-        {breakStarted ? 'End Break' : 'Start'}
-      </button>
-    </div>
-  );
+function formatShiftTime(time, period) {
+  if (!time) return "--";
+  return `${time} ${period ?? ""}`.trim();
 }
 
-function ShiftCard() {
+function getTodayShiftSchedule(schedule) {
+  if (!schedule || typeof schedule !== "object" || Array.isArray(schedule)) {
+    return null;
+  }
+
+  const todayKey = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][new Date().getDay()];
+  const assignedDays = Array.isArray(schedule.days) ? schedule.days : [];
+  if (!assignedDays.includes(todayKey)) {
+    return null;
+  }
+
+  const daySchedule = schedule.daySchedules?.[todayKey];
+  if (daySchedule && typeof daySchedule === "object") {
+    return daySchedule;
+  }
+
+  return schedule;
+}
+
+function ShiftCard({ schedule = null }) {
+  const shiftSchedule = getTodayShiftSchedule(schedule);
+  const startTime = formatShiftTime(shiftSchedule?.startTime, shiftSchedule?.startPeriod);
+  const endTime = formatShiftTime(shiftSchedule?.endTime, shiftSchedule?.endPeriod);
+  
   return (
     <div className="card shift-card">
       <div className="shift-columns">
         <div>
           <div className="label">Shift Start Time</div>
-          <div className="value">9:00 AM</div>
+          <div className="value">{startTime}</div>
         </div>
         <div>
-          <div className="label">Shift Start End</div>
-          <div className="value">6:00 PM</div>
+          <div className="label">Shift End Time</div>
+          <div className="value">{endTime}</div>
         </div>
       </div>
-      <div className="remaining">8 hrs Remaining Time</div>
     </div>
   );
 }
@@ -106,7 +101,7 @@ function CalendarCard({ calendarData }) {
         <span className="calendar-month">{calendarData.monthLabel}</span>
       </div>
       <div className="calendar-grid weekdays">
-        {calendarData.weekDays.map((weekday) => (
+        {calendarData.weekDays.map(weekday => (
           <div key={weekday} className="calendar-cell header">{weekday}</div>
         ))}
       </div>
@@ -114,7 +109,7 @@ function CalendarCard({ calendarData }) {
         {calendarData.cells.map((cell, index) => (
           <div
             key={`${cell.day}-${index}`}
-            className={`calendar-cell ${cell.muted ? 'muted' : ''} ${cell.isToday ? 'today' : ''}`}
+            className={`calendar-cell ${cell.muted ? "muted" : ""} ${cell.isToday ? "today" : ""}`}
           >
             {cell.day}
           </div>
@@ -124,22 +119,14 @@ function CalendarCard({ calendarData }) {
   );
 }
 
-function HolidayCard({ holidayBirthdayItems }) {
+function HolidayCard() {
   return (
     <div className="card holiday-card">
       <div className="card-top">
         <span>Holidays/Birthday</span>
         <span className="plus">+</span>
       </div>
-      <ul className="list-items holiday-list">
-        {holidayBirthdayItems.map((item) => (
-          <li key={`${item.kind}-${item.label}`} className="holiday-item">
-            <span className={`holiday-kind ${item.kind.toLowerCase()}`}>{item.kind}</span>
-            <span className="holiday-label">{item.label}</span>
-            <span className="holiday-date">{item.date}</span>
-          </li>
-        ))}
-      </ul>
+      <ul className="list-items holiday-list" aria-label="No holidays or birthdays yet" />
       <div className="mini-actions">✎&nbsp;&nbsp;◷</div>
     </div>
   );
@@ -150,49 +137,143 @@ function SummaryCard({ timeInStart, totalHours }) {
     <div className="card summary-card">
       <div>
         <div className="label">Today Status</div>
-        <div className="small-info">Time In: {timeInStart ? timeInStart.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : '--:--'}</div>
+        <div className="small-info">Time In: {timeInStart ? timeInStart.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }) : "--:--"}</div>
         <div className="small-info">Break: Inactive</div>
       </div>
       <div>
         <div className="label">Total Hours</div>
-        <div className="big-value">{totalHours}h</div>
+        <div className="summary-hours-value">{totalHours}h</div>
       </div>
       <div>
         <div className="label">Attendance</div>
-        <div className="big-value">{timeInStart ? 'Present' : 'Absent'}</div>
+        <div className="summary-status-value">{timeInStart ? "Present" : "Absent"}</div>
       </div>
     </div>
   );
 }
 
-function MemberStatusCard({ memberStatuses, memberRequests, getStatusDotClass }) {
+function MemberStatusCard() {
   return (
     <div className="card member-card">
       <div className="member-title">Member Status</div>
-      {memberStatuses.map((member) => (
-        <div key={member.name} className="member-line">
-          <span>{member.name}</span>
-          <span className="member-status-text">{member.status}</span>
-          <span className={getStatusDotClass(member.status)} />
+      <div className="request-list" aria-label="No member status updates yet">
+        <div className="request-row">
+          <span>Kim Santos</span>
+          <span className="requesting">Requesting OT</span>
+          <button type="button" className="view-btn">View</button>
         </div>
-      ))}
-
-      <div className="request-list">
-        {memberRequests.map((member) => (
-          <div key={member.name} className="request-row">
-            <span>{member.name}</span>
-            <span className="requesting">{member.request}</span>
-            <button type="button" className="view-btn">View</button>
-          </div>
-        ))}
       </div>
     </div>
+  );
+}
+
+export default function MainDashboard({
+  attendanceControls = null,
+  showMemberStatusCard = false,
+  schedule = null,
+}) {
+  const [timeInStart, setTimeInStart] = useState(null);
+  const [now, setNow] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const activeTimeIn = attendanceControls?.timeInAt ?? timeInStart;
+  const activeTimeOut = attendanceControls?.timeOutAt ?? null;
+  const hasActiveTimeIn = Boolean(activeTimeIn && !activeTimeOut);
+  const canToggleTimeIn = attendanceControls
+    ? Boolean(attendanceControls.canClickTimeIn || attendanceControls.canClickTimeOut)
+    : true;
+
+  const counterDisplay = useMemo(() => {
+    if (!activeTimeIn) return "00:00:00";
+    const counterEndTime = activeTimeOut ?? now;
+    const diffInSeconds = Math.max(0, Math.floor((counterEndTime.getTime() - activeTimeIn.getTime()) / 1000));
+    const hours = String(Math.floor(diffInSeconds / 3600)).padStart(2, "0");
+    const minutes = String(Math.floor((diffInSeconds % 3600) / 60)).padStart(2, "0");
+    const seconds = String(diffInSeconds % 60).padStart(2, "0");
+    return `${hours}:${minutes}:${seconds}`;
+  }, [activeTimeIn, activeTimeOut, now]);
+
+  const totalHours = useMemo(() => {
+    if (!activeTimeIn) return "0.0";
+    const endTime = activeTimeOut ?? now;
+    const elapsedHours = Math.max(0, (endTime.getTime() - activeTimeIn.getTime()) / (1000 * 60 * 60));
+    return elapsedHours.toFixed(1);
+  }, [activeTimeIn, activeTimeOut, now]);
+
+  const calendarData = useMemo(() => {
+    const currentDate = new Date();
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    const firstDayOfMonth = new Date(year, month, 1);
+    const lastDayOfMonth = new Date(year, month + 1, 0);
+    const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+    const cells = [];
+    for (let index = 0; index < firstDayOfMonth.getDay(); index += 1) {
+      cells.push({ day: "", muted: true, isToday: false });
+    }
+
+    for (let day = 1; day <= lastDayOfMonth.getDate(); day += 1) {
+      const isToday =
+        day === currentDate.getDate() &&
+        month === currentDate.getMonth() &&
+        year === currentDate.getFullYear();
+      cells.push({ day, muted: false, isToday });
+    }
+
+    return {
+      monthLabel: currentDate.toLocaleDateString("en-US", { month: "long", year: "numeric" }),
+      weekDays,
+      cells,
+    };
+  }, []);
+
+  const onToggleTimeIn = () => {
+    if (attendanceControls) {
+      if (attendanceControls.canClickTimeOut) {
+        attendanceControls.onTimeOut();
+        return;
+      }
+      if (attendanceControls.canClickTimeIn) {
+        attendanceControls.onTimeIn();
+      }
+      return;
+    }
+
+    setTimeInStart(prev => (prev ? null : new Date()));
+  };
+
+  return (
+    <>
+      <DashboardHeader
+        headerTime={now.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}
+        headerDate={now.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
+      />
+
+      <div className="dashboard-grid">
+        <TimeCard
+          counterDisplay={counterDisplay}
+          hasActiveTimeIn={hasActiveTimeIn}
+          onToggleTimeIn={onToggleTimeIn}
+          canToggleTimeIn={canToggleTimeIn}
+        />
+        <AnnouncementCard />
+        <ShiftCard schedule={schedule} />
+        <CalendarCard calendarData={calendarData} />
+        <HolidayCard />
+        <SummaryCard timeInStart={activeTimeIn} totalHours={totalHours} />
+        {showMemberStatusCard ? <MemberStatusCard /> : null}
+      </div>
+    </>
   );
 }
 
 export {
   AnnouncementCard,
-  BreakCard,
   CalendarCard,
   DashboardHeader,
   HolidayCard,
