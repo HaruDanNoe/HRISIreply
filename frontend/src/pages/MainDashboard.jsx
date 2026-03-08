@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
+import "../styles/MainDashboard.css";
 
 function DashboardHeader({ headerTime, headerDate }) {
   return (
     <section className="dashboard-header">
+      <div className="datetime">{headerTime}&nbsp;&nbsp;&nbsp;{headerDate}</div>
     </section>
   );
 }
@@ -72,7 +74,7 @@ function ShiftCard({ schedule = null }) {
   const shiftSchedule = getTodayShiftSchedule(schedule);
   const startTime = formatShiftTime(shiftSchedule?.startTime, shiftSchedule?.startPeriod);
   const endTime = formatShiftTime(shiftSchedule?.endTime, shiftSchedule?.endPeriod);
-  
+
   return (
     <div className="card shift-card">
       <div className="shift-columns">
@@ -239,13 +241,3 @@ export default function MainDashboard({
     </>
   );
 }
-
-export {
-  AnnouncementCard,
-  CalendarCard,
-  DashboardHeader,
-  HolidayCard,
-  MemberStatusCard,
-  ShiftCard,
-  TimeCard,
-};
