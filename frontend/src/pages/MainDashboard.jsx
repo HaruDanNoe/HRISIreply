@@ -130,6 +130,27 @@ function HolidayCard() {
   );
 }
 
+
+function SummaryCard({ timeInStart, totalHours }) {
+  return (
+    <div className="card summary-card">
+      <div>
+        <div className="label">Today Status</div>
+        <div className="small-info">Time In: {timeInStart ? timeInStart.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : '--:--'}</div>
+        <div className="small-info">Break: Inactive</div>
+      </div>
+      <div>
+        <div className="label">Total Hours</div>
+        <div className="big-value">{totalHours}h</div>
+      </div>
+      <div>
+        <div className="label">Attendance</div>
+        <div className="big-value">{timeInStart ? 'Present' : 'Absent'}</div>
+      </div>
+    </div>
+  );
+}
+
 function MemberStatusCard() {
   return (
     <div className="card member-card">
@@ -203,6 +224,14 @@ export default function MainDashboard({
     };
   }, []);
 
+
+  const totalHours = useMemo(() => {
+    if (!activeTimeIn) return 0;
+    const counterEndTime = activeTimeOut ?? now;
+    const diffInSeconds = Math.max(0, Math.floor((counterEndTime.getTime() - activeTimeIn.getTime()) / 1000));
+    return (diffInSeconds / 3600).toFixed(1);
+  }, [activeTimeIn, activeTimeOut, now]);
+
   const onToggleTimeIn = () => {
     if (attendanceControls) {
       if (attendanceControls.canClickTimeOut) {
@@ -236,6 +265,7 @@ export default function MainDashboard({
         <ShiftCard schedule={schedule} />
         <CalendarCard calendarData={calendarData} />
         <HolidayCard />
+        <SummaryCard timeInStart={activeTimeIn} totalHours={totalHours} />
         {showMemberStatusCard ? <MemberStatusCard /> : null}
       </div>
     </>
