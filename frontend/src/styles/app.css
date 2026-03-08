@@ -1944,7 +1944,7 @@ body {
   grid-template-areas:
     "time announcement announcement"
     "shift calendar holiday"
-    "summary summary member";
+    "member member member";
   column-gap: 8px;
   row-gap: 6px;
   align-items: start;
@@ -1953,15 +1953,14 @@ body {
 .dashboard-grid.no-member-status {
   grid-template-areas:
     "time announcement announcement"
-    "shift calendar holiday"
-    "summary summary summary";
+    "shift calendar holiday";
 }
 
 .dashboard-grid.has-member-status {
   grid-template-areas:
     "time announcement announcement"
     "shift calendar holiday"
-    "summary summary member";
+    "member member member";
 }
 
 .dashboard-grid > .card {
@@ -1989,7 +1988,6 @@ body {
   .dashboard-grid .shift-card,
   .dashboard-grid .calendar-card,
   .dashboard-grid .holiday-card,
-  .dashboard-grid .summary-card,
   .dashboard-grid .member-card {
     height: auto;
     min-height: 0;
@@ -2056,8 +2054,7 @@ body {
     grid-template-areas:
       "time announcement"
       "shift calendar"
-      "holiday member"
-      "summary summary";
+      "holiday member";
     column-gap: 8px;
     row-gap: 8px;
   }
@@ -2066,8 +2063,7 @@ body {
     grid-template-areas:
       "time announcement"
       "shift calendar"
-      "holiday holiday"
-      "summary summary";
+      "holiday holiday";
   }
 }
 
@@ -2089,7 +2085,6 @@ body {
       "shift"
       "calendar"
       "holiday"
-      "summary"
       "member";
     column-gap: 0;
     row-gap: 8px;
@@ -2101,8 +2096,7 @@ body {
       "announcement"
       "shift"
       "calendar"
-      "holiday"
-      "summary";
+      "holiday";
   }
   
   .card {
@@ -2542,80 +2536,6 @@ body {
     font-size: 16px;
   }
 }
-
-/* SummaryCard.css */
-.summary-card {
-  grid-area: summary;
-  min-height: 112px;
-  display: grid;
-  grid-template-columns: 1.1fr 1fr 1fr;
-  gap: 14px;
-  align-items: center;
-}
-
-.summary-card > div {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-items: flex-start;
-  text-align: left;
-}
-
-.small-info {
-  font-size: 13px;
-  margin-top: 2px;
-}
-
-.summary-hours-value {
-  font-size: clamp(2rem, 2.8vw, 2.6rem);
-  font-weight: 800;
-  line-height: 1.05;
-}
-
-.summary-status-value {
-  font-size: clamp(1.1rem, 1.8vw, 1.6rem);
-  font-weight: 700;
-  line-height: 1.15;
-  overflow-wrap: anywhere;
-}
-
-@media (max-width: 1200px) {
-  .summary-hours-value {
-    font-size: clamp(1.8rem, 5vw, 2.2rem);
-  }
-
-  .summary-status-value {
-    font-size: clamp(1rem, 3.4vw, 1.35rem);
-  }
-
-  .small-info {
-    font-size: 13px;
-  }
-
-  .summary-card {
-    min-height: 120px;
-    gap: 10px;
-  }
-}
-
-@media (max-width: 640px) {
-  .summary-card {
-    grid-template-columns: 1fr;
-    gap: 8px;
-    align-items: start;
-  }
-
-
-  .summary-hours-value {
-    font-size: 34px;
-  }
-
-  .summary-status-value {
-    font-size: 1.25rem;
-  }
-}
-
 
 /* TimeCard.css */
 .time-card {

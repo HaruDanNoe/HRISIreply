@@ -128,26 +128,6 @@ function HolidayCard() {
   );
 }
 
-function SummaryCard({ timeInStart, totalHours }) {
-  return (
-    <div className="card summary-card">
-      <div>
-        <div className="label">Today Status</div>
-        <div className="small-info">Time In: {timeInStart ? timeInStart.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }) : "--:--"}</div>
-        <div className="small-info">Break: Inactive</div>
-      </div>
-      <div>
-        <div className="label">Total Hours</div>
-        <div className="summary-hours-value">{totalHours}h</div>
-      </div>
-      <div>
-        <div className="label">Attendance</div>
-        <div className="summary-status-value">{timeInStart ? "Present" : "Absent"}</div>
-      </div>
-    </div>
-  );
-}
-
 function MemberStatusCard() {
   return (
     <div className="card member-card">
@@ -191,13 +171,6 @@ export default function MainDashboard({
     const minutes = String(Math.floor((diffInSeconds % 3600) / 60)).padStart(2, "0");
     const seconds = String(diffInSeconds % 60).padStart(2, "0");
     return `${hours}:${minutes}:${seconds}`;
-  }, [activeTimeIn, activeTimeOut, now]);
-
-  const totalHours = useMemo(() => {
-    if (!activeTimeIn) return "0.0";
-    const endTime = activeTimeOut ?? now;
-    const elapsedHours = Math.max(0, (endTime.getTime() - activeTimeIn.getTime()) / (1000 * 60 * 60));
-    return elapsedHours.toFixed(1);
   }, [activeTimeIn, activeTimeOut, now]);
 
   const calendarData = useMemo(() => {
@@ -261,7 +234,6 @@ export default function MainDashboard({
         <ShiftCard schedule={schedule} />
         <CalendarCard calendarData={calendarData} />
         <HolidayCard />
-        <SummaryCard timeInStart={activeTimeIn} totalHours={totalHours} />
         {showMemberStatusCard ? <MemberStatusCard /> : null}
       </div>
     </>
@@ -275,6 +247,5 @@ export {
   HolidayCard,
   MemberStatusCard,
   ShiftCard,
-  SummaryCard,
   TimeCard,
 };
