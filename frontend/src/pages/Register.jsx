@@ -68,8 +68,7 @@ export default function Register() {
 
   return (
     <AuthLayout
-      title="Create your workspace"
-      description="Invite leaders, assign permissions, and launch a polished team hub in minutes."
+      
       highlights={registerHighlights}
     >
       <form className="auth-card" onSubmit={handleSubmit}>

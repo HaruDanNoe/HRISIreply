@@ -11,12 +11,12 @@ export const loginHighlights = [
 
 export const registerHighlights = [
   {
-    label: "Role-based access",
-    value: "Give every member the right permissions.",
+    label: "",
+    value: "",
   },
   {
-    label: "Quick onboarding",
-    value: "Bring your organization online instantly.",
+    label: "",
+    value: "",
   },
 ];
 

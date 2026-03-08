@@ -11,7 +11,7 @@ export default function AuthLayout({
       <div className={`auth-shell${showPanel ? "" : " auth-shell-single"}`}>
         {showPanel ? (
           <section className="auth-panel">
-            <span className="auth-pill">Team Cluster</span>
+            <span className="auth-pill"></span>
             <h1>{title}</h1>
             <p>{description}</p>
 
