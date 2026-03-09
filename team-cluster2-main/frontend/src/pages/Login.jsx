@@ -84,7 +84,7 @@ export default function Login() {
         </button>
 
         <p className="auth-footer">
-          No account? <Link href="/register">Register</Link>
+          No account? <a href="/register">Register</a>
         </p>
       </form>
     </AuthLayout>
