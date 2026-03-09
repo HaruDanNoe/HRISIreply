@@ -122,6 +122,11 @@ export default function CoachDashboard() {
     return schedule;
   };
 
+  const normalizeCluster = cluster => ({
+    ...cluster,
+    coach_schedule: normalizeSchedule(cluster?.coach_schedule)
+  });
+
   const createDaySchedules = (days = [], baseSchedule = {}) => {
     const daySchedules = {};
     dayOptions.forEach(day => {
@@ -421,7 +426,15 @@ export default function CoachDashboard() {
 
   useEffect(() => {
     apiFetch("api/coach_clusters.php")
-      .then(setClusters)
+      .then(response => {
+        const normalizedClusters = Array.isArray(response)
+          ? response.map(cluster => ({
+              ...cluster,
+              coach_schedule: normalizeSchedule(cluster?.coach_schedule)
+            }))
+          : [];
+        setClusters(normalizedClusters);
+      })
       .catch(err => {
         setError(err?.error ?? "Unable to load team clusters.");
       });
@@ -617,7 +630,7 @@ useEffect(() => {
         body: JSON.stringify(payload)
       });
 
-      setClusters(prev => [created, ...prev]);
+      setClusters(prev => [normalizeCluster(created), ...prev]);
       setFormValues({ name: "", description: "" });
       setShowForm(false);
     } catch (err) {
