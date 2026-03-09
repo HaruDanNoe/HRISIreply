@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import Login from "./pages/Login";
-import Register from "./pages/Register";
+import Register from "./Register";
 import AdminDashboard from "./pages/AdminDashboard";
 import CoachDashboard from "./pages/CoachDashboard";
 import CoachAttendancePage from "./pages/CoachAttendancePage";
