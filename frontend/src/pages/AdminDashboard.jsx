@@ -137,6 +137,29 @@ export default function AdminDashboard() {
     return `${startTime} ${startPeriod} - ${endTime} ${endPeriod}`;
   };
 
+  const formatCoachDaySchedule = (coachSchedule, day) => {
+    const assignedDays = Array.isArray(coachSchedule?.days) ? coachSchedule.days : [];
+    if (!assignedDays.includes(day)) return "—";
+
+    const daySchedule = coachSchedule?.daySchedules?.[day];
+    if (!daySchedule) {
+      return {
+        shift: "Schedule set",
+        breakTime: "—"
+      };
+    }
+
+    return {
+      shift: formatTimeRange(daySchedule),
+      breakTime: formatBreakTimeRange(
+        daySchedule.breakStartTime,
+        daySchedule.breakStartPeriod,
+        daySchedule.breakEndTime,
+        daySchedule.breakEndPeriod
+      )
+    };
+  };
+
   const getAutomaticShiftType = (startTime, startPeriod) => {
     const startMinutes = toMinutes(startTime, startPeriod);
     if (startMinutes === null) return "Morning Shift";
@@ -339,7 +362,8 @@ export default function AdminDashboard() {
           schedule: scheduleForm
         })
       });
-      setScheduleModalMessage(`Schedule saved for ${managingScheduleCluster.coach} (${managingScheduleCluster.name}).`);
+      await fetchClusters();
+      handleCloseScheduleModal();
     } catch (error) {
       setScheduleModalMessage(error?.error ?? "Unable to save schedule.");
     } finally {
@@ -559,14 +583,20 @@ const handleOpenRejectModal = cluster => {
                       <div key={`coach-schedule-${cluster.id}`} className="active-members-schedule-row" role="row">
                         <div className="active-members-owner" role="cell">{cluster.coach || "—"}</div>
                         {dayOptions.map(day => {
-                          const coachSchedule = cluster.coach_schedule;
-                          const assignedDays = Array.isArray(coachSchedule?.days) ? coachSchedule.days : [];
-                          const daySchedule = coachSchedule?.daySchedules?.[day];
-                          const hasSchedule = assignedDays.includes(day);
+                          const daySchedule = formatCoachDaySchedule(cluster.coach_schedule, day);
+
+                          if (typeof daySchedule === "string") {
+                            return (
+                              <div key={`${cluster.id}-${day}`} role="cell">{daySchedule}</div>
+                            );
+                          }
 
                           return (
-                            <div key={`${cluster.id}-${day}`} role="cell">
-                              {hasSchedule ? formatTimeRange(daySchedule) : "—"}
+                            <div key={`${cluster.id}-${day}`} role="cell" className="active-day-cell">
+                              <div>{daySchedule.shift}</div>
+                              <span className="active-day-tag break-tag">
+                                Break time: {daySchedule.breakTime}
+                              </span>
                             </div>
                           );
                         })}
