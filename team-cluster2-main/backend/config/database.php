@@ -1,7 +1,14 @@
 <?php
-$conn = new mysqli("localhost", "root", "", "system_hris_db");
+
+$host = "localhost";
+$user = "dtfj_system_hris_db";
+$password = "ireplyusls";
+$database = "dtfj_system_hris_db";
+
+$conn = new mysqli($host, $user, $password, $database);
 
 if ($conn->connect_error) {
-    http_response_code(500);
-    exit(json_encode(["error" => "DB connection failed"]));
+    die("Connection failed: " . $conn->connect_error);
 }
+
+?>
