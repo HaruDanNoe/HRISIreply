@@ -14,6 +14,7 @@ function TimeCard({
   hasActiveTimeIn,
   onToggleTimeIn,
   canToggleTimeIn,
+  hasCompletedShift = false,
   statusTags = [],
 }) {
   return (
@@ -21,14 +22,18 @@ function TimeCard({
       <div className="time-panel">
         <div className="time-counter">{counterDisplay}</div>
 
-        <button
-          type="button"
-          className="time-in-btn"
-          onClick={onToggleTimeIn}
-          disabled={!canToggleTimeIn}
-        >
-          {hasActiveTimeIn ? "Time Out" : "Time In"}
-        </button>
+        {hasCompletedShift ? (
+          <p className="time-complete-message">Thank you for your hard work.</p>
+        ) : (
+          <button
+            type="button"
+            className="time-in-btn"
+            onClick={onToggleTimeIn}
+            disabled={!canToggleTimeIn}
+          >
+            {hasActiveTimeIn ? "Time Out" : "Time In"}
+          </button>
+        )}
 
         <div className="time-tag-list" aria-label="Today status tags">
           {statusTags.map(tag => (
@@ -85,15 +90,20 @@ function ShiftCard({ schedule = null, dashboardMeta = null }) {
   const shiftSchedule = getTodayShiftSchedule(schedule);
   const startTime = formatShiftTime(shiftSchedule?.startTime, shiftSchedule?.startPeriod);
   const endTime = formatShiftTime(shiftSchedule?.endTime, shiftSchedule?.endPeriod);
+  const shiftDayName = new Date().toLocaleDateString("en-US", { weekday: "long" });
 
   return (
     <div className="card shift-card">
+      <div className="card-top">
+        <span>Current Shift</span>
+        <span className="shift-day-name">{shiftDayName}</span>
+      </div>
       <div className="shift-columns">
-        <div>
+        <div className="shift-stat">
           <div className="label">Shift Start Time</div>
           <div className="value">{startTime}</div>
         </div>
-        <div>
+        <div className="shift-stat">
           <div className="label">Shift End Time</div>
           <div className="value">{endTime}</div>
         </div>
@@ -149,17 +159,19 @@ function HolidayCard({ canEdit = true }) {
 function SummaryCard({ timeInStart, totalHours, dashboardMeta = null }) {
   return (
     <div className="card summary-card">
-      <div>
+      <div className="summary-section">
         <div className="label">Today Status</div>
-        <div className="small-info">Time In: {timeInStart ? timeInStart.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : '--:--'}</div>
-        <div className="small-info">Break: {dashboardMeta?.breakTag ?? "Inactive"}</div>
-        <div className="small-info">Status: {dashboardMeta?.availabilityLabel ?? "Not available"}</div>
+        <div className="summary-list">
+          <div className="summary-row"><span>Time In</span><strong>{timeInStart ? timeInStart.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : '--:--'}</strong></div>
+          <div className="summary-row"><span>Break</span><strong>{dashboardMeta?.breakTag ?? "Inactive"}</strong></div>
+          <div className="summary-row"><span>Status</span><strong>{dashboardMeta?.availabilityLabel ?? "Not available"}</strong></div>
+        </div>
       </div>
-      <div>
+      <div className="summary-section">
         <div className="label">Total Hours</div>
         <div className="big-value">{totalHours}h</div>
       </div>
-      <div>
+      <div className="summary-section">
         <div className="label">Attendance</div>
         <div className="big-value">{timeInStart ? "Present" : "Absent"}</div>
         <div className="summary-tag">{dashboardMeta?.attendanceTag ?? "Pending"}</div>
@@ -201,6 +213,7 @@ export default function MainDashboard({
 
   const activeTimeIn = attendanceControls?.timeInAt ?? timeInStart;
   const activeTimeOut = attendanceControls?.timeOutAt ?? null;
+  const hasCompletedShift = Boolean(attendanceControls?.hasCompletedShift);
   const hasActiveTimeIn = Boolean(activeTimeIn && !activeTimeOut);
   const canToggleTimeIn = attendanceControls
     ? Boolean(attendanceControls.canClickTimeIn || attendanceControls.canClickTimeOut)
@@ -302,6 +315,7 @@ export default function MainDashboard({
           hasActiveTimeIn={hasActiveTimeIn}
           onToggleTimeIn={onToggleTimeIn}
           canToggleTimeIn={canToggleTimeIn}
+          hasCompletedShift={hasCompletedShift}
           statusTags={statusTags}
         />
         <AnnouncementCard canEdit={canEditCards} />
