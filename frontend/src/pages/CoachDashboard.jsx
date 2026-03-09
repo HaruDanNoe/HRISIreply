@@ -60,7 +60,7 @@ export default function CoachDashboard() {
   const [activeMembersError, setActiveMembersError] = useState("");
   const [confirmState, setConfirmState] = useState(null);
   const [attendanceLog, setAttendanceLog] = useState({ timeInAt: null, timeOutAt: null, tag: null });
-  const [activeNav, setActiveNav] = useState("Team");
+  const [activeNav, setActiveNav] = useState("Dashboard");
   const [scheduleForm, setScheduleForm] = useState({
     days: ["Mon", "Tue", "Wed", "Thu", "Fri"],
     daySchedules: {

@@ -28,7 +28,7 @@ export default function AdminDashboard() {
   const MAX_SHIFT_MINUTES = 9 * 60;
   const [clusters, setClusters] = useState([]);
   const [rejectingCluster, setRejectingCluster] = useState(null);
-  const [activeNav, setActiveNav] = useState("Team");
+  const [activeNav, setActiveNav] = useState("Dashboard");
   const [rejectionReason, setRejectionReason] = useState("");
   const [rejectError, setRejectError] = useState("");
   const [isSubmittingReject, setIsSubmittingReject] = useState(false);
