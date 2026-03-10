@@ -738,8 +738,20 @@
   width: 10px;
   height: 10px;
   border-radius: 999px;
+}
+
+.summary-status-value.is-available .summary-status-dot {
   background: #44c779;
   box-shadow: 0 0 0 3px rgba(68, 199, 121, 0.22);
+}
+
+.summary-status-value.is-unavailable .summary-status-dot {
+  background: #e04f5f;
+  box-shadow: 0 0 0 3px rgba(224, 79, 95, 0.22);
+}
+
+.summary-status-value.is-unavailable {
+  color: #141414;
 }
 
 

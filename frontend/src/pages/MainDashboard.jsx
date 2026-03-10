@@ -149,6 +149,8 @@ function HolidayCard({ canEdit = true }) {
 
 function SummaryCard({ timeInStart, totalHours, dashboardMeta = null }) {
   const isPresent = Boolean(timeInStart);
+  const availabilityLabel = dashboardMeta?.availabilityLabel ?? "Available";
+  const isAvailable = !/not\s+available|unavailable/i.test(availabilityLabel);
   return (
     <div className="card summary-card">
       <div className="summary-section summary-section-status">
@@ -158,9 +160,9 @@ function SummaryCard({ timeInStart, totalHours, dashboardMeta = null }) {
           <div className="summary-row"><span>Break</span><strong>{dashboardMeta?.breakTag ?? "Break inactive"}</strong></div>
           <div className="summary-row">
             <span>Status</span>
-            <strong className="summary-status-value">
+            <strong className={`summary-status-value ${isAvailable ? "is-available" : "is-unavailable"}`}>
               <span className="summary-status-dot" aria-hidden="true" />
-              {dashboardMeta?.availabilityLabel ?? "Available"}
+              {availabilityLabel}
             </strong>
           </div>
         </div>
