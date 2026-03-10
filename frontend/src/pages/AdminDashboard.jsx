@@ -51,10 +51,23 @@ export default function AdminDashboard() {
   const [editForm, setEditForm] = useState({ timeInAt: "", timeOutAt: "", tag: "", note: "" });
   const dateTimeLabel = useLiveDateTime();
   const { user } = useCurrentUser();
+  const attendanceNavItems = ["My Attendance", "My Requests", "My Filing Center"];
+  const [attendanceExpanded, setAttendanceExpanded] = useState(true);
+  const isAttendanceView = activeNav === "Attendance" || attendanceNavItems.includes(activeNav);
   const navItems = [
     { label: "Dashboard", active: activeNav === "Dashboard", onClick: () => setActiveNav("Dashboard") },
     { label: "Team", active: activeNav === "Team", onClick: () => setActiveNav("Team") },
-    { label: "Attendance", active: activeNav === "Attendance", onClick: () => setActiveNav("Attendance") },
+    {
+      label: "Attendance",
+      active: isAttendanceView,
+      expanded: attendanceExpanded,
+      onClick: () => setAttendanceExpanded(prev => !prev),
+      children: attendanceNavItems.map(label => ({
+        label,
+        active: (label === "My Attendance" && activeNav === "Attendance") || activeNav === label,
+        onClick: () => setActiveNav(label === "My Attendance" ? "Attendance" : label)
+      }))
+    },
     { label: "Schedule", active: activeNav === "Schedule", onClick: () => setActiveNav("Schedule") }
   ];
 
@@ -531,6 +544,16 @@ const handleOpenRejectModal = cluster => {
                 ))}
               </div>
             )}
+          </section>
+        ) : activeNav === "My Requests" ? (
+          <section className="content">
+            <div className="section-title">My Requests</div>
+            <div className="empty-state">No requests available yet.</div>
+          </section>
+        ) : activeNav === "My Filing Center" ? (
+          <section className="content">
+            <div className="section-title">My Filing Center</div>
+            <div className="empty-state">No filing records available yet.</div>
           </section>
         ) : (
           <section className="content">

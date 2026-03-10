@@ -97,10 +97,22 @@ export default function CoachAttendancePage() {
   }, []);
   const { user } = useCurrentUser();
   const dateTimeLabel = useLiveDateTime();
+  const attendanceNavItems = ["My Attendance", "My Requests", "My Filing Center"];
+  const [attendanceExpanded, setAttendanceExpanded] = useState(true);
   const navItems = [
     { label: "Dashboard", onClick: () => navigate("/coach") },
     { label: "Team", onClick: () => navigate("/coach") },
-    { label: "Attendance", active: true },
+    {
+      label: "Attendance",
+      active: true,
+      expanded: attendanceExpanded,
+      onClick: () => setAttendanceExpanded(prev => !prev),
+      children: attendanceNavItems.map(label => ({
+        label,
+        active: label === "My Attendance",
+        onClick: () => navigate("/coach/attendance")
+      }))
+    },
     { label: "Schedule", onClick: () => navigate("/coach") }
   ];
 

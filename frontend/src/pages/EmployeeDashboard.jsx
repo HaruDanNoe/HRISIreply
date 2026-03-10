@@ -9,13 +9,32 @@ import { resolveAttendanceMainTag } from "../utils/attendanceTags";
 
 export default function EmployeeDashboard() {
   const navItems = ["Dashboard", "Team", "Attendance", "Schedule"];
+  const attendanceNavItems = ["My Attendance", "My Requests", "My Filing Center"];
   const [data, setData] = useState([]);
   const [activeNav, setActiveNav] = useState("Dashboard");
-  const sidebarNavItems = navItems.map(item => ({
-    label: item,
-    active: activeNav === item,
-    onClick: () => setActiveNav(item)
-  }));
+  const [attendanceExpanded, setAttendanceExpanded] = useState(true);
+  const isAttendanceView = attendanceNavItems.includes(activeNav);
+  const sidebarNavItems = navItems.map(item => {
+    if (item === "Attendance") {
+      return {
+        label: item,
+        active: isAttendanceView,
+        expanded: attendanceExpanded,
+        onClick: () => setAttendanceExpanded(prev => !prev),
+        children: attendanceNavItems.map(label => ({
+          label,
+          active: activeNav === label,
+          onClick: () => setActiveNav(label)
+        }))
+      };
+    }
+
+    return {
+      label: item,
+      active: activeNav === item,
+      onClick: () => setActiveNav(item)
+    };
+  });
   const [attendanceLog, setAttendanceLog] = useState({
     timeInAt: null,
     timeOutAt: null,
@@ -410,9 +429,13 @@ export default function EmployeeDashboard() {
             <div className="section-title">
               {activeNav === "Dashboard"
                 ? "Employee time tracking"
-                : activeNav === "Attendance"
+                : activeNav === "My Attendance"
                   ? "Attendance history"
-                  : "My team cluster overview"}
+                  : activeNav === "My Requests"
+                    ? "My requests"
+                    : activeNav === "My Filing Center"
+                      ? "My filing center"
+                      : "My team cluster overview"}
             </div>
           </div>
           <span className="datetime">{dateTimeLabel}</span>
@@ -442,13 +465,13 @@ export default function EmployeeDashboard() {
             />
           )}
 
-          {data.length === 0 && activeNav !== "Attendance" && (
+          {data.length === 0 && !isAttendanceView && (
             <div className="empty-state">No team cluster details available.</div>
           )}
 
-          {(activeNav === "Attendance" || data.length > 0) && activeNav !== "Dashboard" && (
+          {(isAttendanceView || data.length > 0) && activeNav !== "Dashboard" && (
             <div className="employee-panel">
-              {activeNav === "Attendance" && (
+              {activeNav === "My Attendance" && (
                 <div className="employee-card">
                   <div className="employee-card-header">
                     <div className="employee-card-title">Attendance History</div>
@@ -510,7 +533,29 @@ export default function EmployeeDashboard() {
                 </div>
                  )}
 
-              {activeNav !== "Attendance" && (
+              {activeNav === "My Requests" && (
+                <div className="employee-card">
+                  <div className="employee-card-header">
+                    <div className="employee-card-title">My Requests</div>
+                  </div>
+                  <div className="employee-card-body">
+                    <div className="empty-state">No requests available yet.</div>
+                  </div>
+                </div>
+              )}
+
+              {activeNav === "My Filing Center" && (
+                <div className="employee-card">
+                  <div className="employee-card-header">
+                    <div className="employee-card-title">My Filing Center</div>
+                  </div>
+                  <div className="employee-card-body">
+                    <div className="empty-state">No filing records available yet.</div>
+                  </div>
+                </div>
+              )}
+
+              {!isAttendanceView && (
                 <>
               <div className="employee-card">
                 <div className="employee-card-header">
