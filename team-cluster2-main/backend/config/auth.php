@@ -32,13 +32,22 @@ header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Pragma: no-cache");
 header("Expires: 0");
 
+// Get current user from session if available
+function getCurrentUser() {
+    return $_SESSION['user'] ?? null;
+}
 
-if (!isset($_SESSION['user'])) {
-    http_response_code(401);
-    exit(json_encode(["error" => "Unauthorized"]));
+// Check if user is authenticated
+function isAuthenticated() {
+    return isset($_SESSION['user']);
 }
 
 function requireRole($role) {
+    if (!isAuthenticated()) {
+        http_response_code(401);
+        exit(json_encode(["error" => "Unauthorized"]));
+    }
+    
     $currentRole = strtolower($_SESSION['user']['role'] ?? '');
     if ($currentRole !== strtolower($role)) {
         http_response_code(403);

@@ -1,7 +1,7 @@
 <?php
 include "../config/auth.php";
 
-$user = $_SESSION['user'] ?? null;
+$user = getCurrentUser();
 
 if (!$user) {
     http_response_code(401);

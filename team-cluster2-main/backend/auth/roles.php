@@ -1,5 +1,10 @@
 <?php
-header("Access-Control-Allow-Origin: http://localhost:5173");
+// Dynamic CORS - Accept requests from any origin and credentials
+$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+if ($origin !== '') {
+    header("Access-Control-Allow-Origin: {$origin}");
+    header("Vary: Origin");
+}
 header("Access-Control-Allow-Credentials: true");
 header("Access-Control-Allow-Headers: Content-Type");
 header("Access-Control-Allow-Methods: GET, OPTIONS");
