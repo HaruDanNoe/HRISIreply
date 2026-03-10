@@ -12,7 +12,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(204);
     exit;
 }
+
+// Configure session settings for cross-origin requests
 if (session_status() === PHP_SESSION_NONE) {
+    // Set SameSite=Lax to allow cross-site cookie transmission with credentials
+    session_set_cookie_params([
+        'lifetime' => 0,
+        'path' => '/',
+        'domain' => '',
+        'secure' => $_SERVER['HTTPS'] === 'on' || $_SERVER['SERVER_PORT'] === '443',
+        'httponly' => true, // Prevent JavaScript access
+        'samesite' => 'Lax'  // Allow cross-site cookie transmission
+    ]);
     session_start();
 }
 

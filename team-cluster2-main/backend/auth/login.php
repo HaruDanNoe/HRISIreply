@@ -1,9 +1,17 @@
 <?php
-header("Access-Control-Allow-Origin: http://localhost:5173");
+// Dynamic CORS - Accept requests from any origin and credentials
+$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+if ($origin !== '') {
+    header("Access-Control-Allow-Origin: {$origin}");
+    header("Vary: Origin");
+}
 header("Access-Control-Allow-Credentials: true");
 header("Access-Control-Allow-Headers: Content-Type");
 header("Access-Control-Allow-Methods: POST, OPTIONS");
 header("Content-Type: application/json");
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Pragma: no-cache");
+header("Expires: 0");
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(204);
@@ -11,7 +19,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 include "../config/database.php";
-session_start();
+
+// Start session with appropriate settings for cross-origin requests
+if (session_status() === PHP_SESSION_NONE) {
+    // Set SameSite=Lax to allow cross-site cookie transmission with credentials
+    session_set_cookie_params([
+        'lifetime' => 0,
+        'path' => '/',
+        'domain' => '',
+        'secure' => $_SERVER['HTTPS'] === 'on' || $_SERVER['SERVER_PORT'] === '443',
+        'httponly' => true, // Prevent JavaScript access
+        'samesite' => 'Lax'  // Allow cross-site cookie transmission
+    ]);
+    session_start();
+}
 
 function normalizeRole(?string $roleName): string {
     $role = strtolower(trim((string)$roleName));
