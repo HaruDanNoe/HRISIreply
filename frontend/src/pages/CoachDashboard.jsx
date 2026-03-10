@@ -73,7 +73,7 @@ export default function CoachDashboard() {
   });
   const dateTimeLabel = useLiveDateTime();
   const { user } = useCurrentUser();
-  const attendanceNavItems = ["My Attendance", "My Requests", "My Filing Center"];
+  const attendanceNavItems = ["My Attendance", "Team Cluster Attendance", "My Requests", "My Filing Center"];
   const [attendanceExpanded, setAttendanceExpanded] = useState(true);
   const isAttendanceView = activeNav === "Attendance" || attendanceNavItems.includes(activeNav);
   const navItems = [
@@ -1046,6 +1046,8 @@ useEffect(() => {
     setConfirmState(null);
   };
 
+  const attendanceViewTitle = activeNav === "Team Cluster Attendance" ? "Team Cluster Attendance" : "My Attendance";
+
   return (
     <div className="dashboard">
       <DashboardSidebar
@@ -1079,7 +1081,7 @@ useEffect(() => {
             <div className="employee-card employee-attendance-history-card">
               <div className="employee-card-header">
                 <div>
-                  <div className="employee-card-title">My Attendance</div>
+                  <div className="employee-card-title">{attendanceViewTitle}</div>
                   <p className="employee-card-subtitle">Attendance is now part of the Coach Dashboard.</p>
                 </div>
               </div>
