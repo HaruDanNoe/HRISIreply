@@ -2,10 +2,18 @@ import { useEffect, useMemo, useState } from "react";
 import { apiFetch } from "../api/api";
 import { parseSqlDateTime, saveDashboardAttendance } from "../api/attendance";
 import DashboardSidebar from "../components/DashboardSidebar";
+import AttendanceHistoryHighlights from "../components/AttendanceHistoryHighlights";
 import MainDashboard from "./MainDashboard";
 import useLiveDateTime from "../hooks/useLiveDateTime";
 import useCurrentUser from "../hooks/useCurrentUser";
 import { resolveAttendanceMainTag } from "../utils/attendanceTags";
+
+const myRequestHighlights = [
+  { key: "totalRequests", label: "Total Requests", icon: "🗎", accentClass: "is-slate", value: "--", subValue: "N/A" },
+  { key: "pendingRequests", label: "Pending", icon: "◷", accentClass: "is-blue", value: "--", subValue: "N/A" },
+  { key: "approvedRequests", label: "Approved", icon: "✓", accentClass: "is-green", value: "--", subValue: "N/A" },
+  { key: "rejectedRequests", label: "Rejected", icon: "✕", accentClass: "is-red", value: "--", subValue: "N/A" }
+];
 
 export default function CoachDashboard() {
   const dayOptions = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -1046,6 +1054,8 @@ useEffect(() => {
     setConfirmState(null);
   };
 
+  const isMyAttendanceView = activeNav === "Attendance" || activeNav === "My Attendance";
+  const isMyRequestsView = activeNav === "My Requests";
   const attendanceViewTitle = activeNav === "Team Cluster Attendance" ? "Team Cluster Attendance" : "My Attendance";
 
   return (
@@ -1081,21 +1091,30 @@ useEffect(() => {
             <div className="employee-card employee-attendance-history-card">
               <div className="employee-card-header">
                 <div>
-                  <div className="employee-card-title">{attendanceViewTitle}</div>
+                  <div className="employee-card-title">{isMyRequestsView ? "My Requests" : attendanceViewTitle}</div>
                   <p className="employee-card-subtitle">Attendance is now part of the Coach Dashboard.</p>
                 </div>
               </div>
-              <div className="employee-attendance-history-table" role="table" aria-label="Coach attendance snapshot">
-                <div className="employee-attendance-history-header" role="row">
-                  <span role="columnheader">Time In</span>
-                  <span role="columnheader">Time Out</span>
-                  <span role="columnheader">Tag</span>
-                </div>
-                <div className="employee-attendance-history-row" role="row">
-                  <span role="cell">{attendanceLog.timeInAt ? attendanceLog.timeInAt.toLocaleString() : "—"}</span>
-                  <span role="cell">{attendanceLog.timeOutAt ? attendanceLog.timeOutAt.toLocaleString() : "—"}</span>
-                  <span role="cell">{coachAttendanceTag ?? "Pending"}</span>
-                </div>
+              <div className="employee-card-body">
+                {isMyAttendanceView && <AttendanceHistoryHighlights />}
+                {isMyRequestsView && <AttendanceHistoryHighlights highlights={myRequestHighlights} />}
+
+                {isMyRequestsView ? (
+                  <div className="empty-state">No requests available yet.</div>
+                ) : (
+                  <div className="employee-attendance-history-table" role="table" aria-label="Coach attendance snapshot">
+                    <div className="employee-attendance-history-header" role="row">
+                      <span role="columnheader">Time In</span>
+                      <span role="columnheader">Time Out</span>
+                      <span role="columnheader">Tag</span>
+                    </div>
+                    <div className="employee-attendance-history-row" role="row">
+                      <span role="cell">{attendanceLog.timeInAt ? attendanceLog.timeInAt.toLocaleString() : "—"}</span>
+                      <span role="cell">{attendanceLog.timeOutAt ? attendanceLog.timeOutAt.toLocaleString() : "—"}</span>
+                      <span role="cell">{coachAttendanceTag ?? "Pending"}</span>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </section>
