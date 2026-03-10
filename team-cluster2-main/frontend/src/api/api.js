@@ -1,4 +1,4 @@
-const BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? "http://dtfj.helioho.st/backendHRIS/backend").replace(/\/$/, "");
+const BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? "https://dtfj.helioho.st/backendHRIS/backend").replace(/\/$/, "");
 
 function buildEndpointUrl(endpoint, method) {
   if ((method ?? "GET").toUpperCase() !== "GET") {
