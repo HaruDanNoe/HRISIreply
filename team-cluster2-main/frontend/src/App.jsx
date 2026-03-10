@@ -35,7 +35,7 @@ export default function App() {
 
   useEffect(() => {
     if (window.location.pathname === "/") {
-      window.history.replaceState({}, "", "/register");
+      window.history.replaceState({}, "", "/login");
     }
 
     const onPathChange = () => {
