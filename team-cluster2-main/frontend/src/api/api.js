@@ -1,4 +1,5 @@
 const BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? "http://dtfj.helioho.st/backendHRIS/backend").replace(/\/$/, "");
+
 function buildEndpointUrl(endpoint, method) {
   if ((method ?? "GET").toUpperCase() !== "GET") {
     return `${BASE_URL}/${endpoint}`;
@@ -10,14 +11,20 @@ function buildEndpointUrl(endpoint, method) {
 
 export async function apiFetch(endpoint, options = {}) {
   const method = (options.method ?? "GET").toUpperCase();
+
   const res = await fetch(buildEndpointUrl(endpoint, method), {
-    credentials: "include",
+    credentials: "include", // change to "omit" if no sessions
     cache: "no-store",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "Accept": "application/json"
+    },
     ...options
   });
 
   const data = await res.json();
+
   if (!res.ok) throw data;
+
   return data;
 }
