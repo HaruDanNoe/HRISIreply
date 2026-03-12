@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { apiFetch } from "../api/api";
+import "../styles/ControlPanel.css";
 
 export default function ControlPanelSection() {
   const [activeTab, setActiveTab] = useState("General");
@@ -141,142 +142,167 @@ export default function ControlPanelSection() {
 
   return (
     <section className="content control-panel-content">
-      <div className="control-panel-header">
-        <h2>Control Panel</h2>
-        <p>Manage role-based permissions</p>
-      </div>
+      <div className="control-panel-container">
+        <div className="control-panel-header">
+          <h2 className="control-panel-title">Control Panel</h2>
+          <p className="control-panel-subtitle">Manage role-based permissions</p>
+        </div>
 
-      <div className="control-panel-tabs" role="tablist" aria-label="Control panel tabs">
-        {["General", "Search", "Logs", "User Archives"].map(tab => (
-          <button
-            key={tab}
-            type="button"
-            role="tab"
-            aria-selected={tab === activeTab}
-            className={`control-panel-tab ${tab === activeTab ? "active" : ""}`}
-            onClick={() => setActiveTab(tab)}
-          >
-            {tab}
-          </button>
-        ))}
-      </div>
-
-      {activeTab === "General" && (
-        <div className="permission-card-grid">
-          {roles.map(role => (
-            <article key={role.role_id} className="permission-card">
-              <header className="permission-card-header">{role.role_name}</header>
-              <div className="permission-card-body">
-                <p className="permission-card-label">Permissions:</p>
-                <ul>
-                  {(role.permissions ?? []).map(permission => (
-                    <li key={`${role.role_id}-${permission}`}>{permission}</li>
-                  ))}
-                </ul>
-                <button type="button" className="btn permission-edit-btn" onClick={() => openRoleEditor(role)}>
-                  Edit Permissions
-                </button>
-              </div>
-            </article>
+        <div className="control-panel-tabs" role="tablist" aria-label="Control panel tabs">
+          {["General", "Search", "Logs", "User Archives"].map(tab => (
+            <button
+              key={tab}
+              type="button"
+              role="tab"
+              aria-selected={tab === activeTab}
+              className={`control-panel-tab ${tab === activeTab ? "active" : ""}`}
+              onClick={() => setActiveTab(tab)}
+            >
+              {tab}
+            </button>
           ))}
         </div>
-      )}
 
-      {activeTab === "Search" && (
-        <>
-          <input
-            className="control-panel-search"
-            type="search"
-            placeholder="Search a User..."
-            aria-label="Search a User"
-            value={searchTerm}
-            onChange={event => setSearchTerm(event.target.value)}
-          />
-          <div className="control-panel-table-wrap" role="table" aria-label="Search results table">
-            <div className="control-panel-table-header" role="row">
-              <span role="columnheader">ID</span>
-              <span role="columnheader">Full Name</span>
-              <span role="columnheader">Role</span>
-              <span role="columnheader">Position</span>
-              <span role="columnheader">Action</span>
-            </div>
-            {filteredUsers.map(user => (
-              <div key={`search-row-${user.id}`} className="control-panel-table-row" role="row">
-                <span role="cell">{user.id}</span>
-                <span role="cell">{user.fullName}</span>
-                <span role="cell">{user.role}</span>
-                <span role="cell">{user.position}</span>
-                <span role="cell">
-                  <button type="button" className="btn permission-edit-btn" onClick={() => openUserPermissions(user)}>
-                    Permissions
+        {activeTab === "General" && (
+          <div className="control-panel-grid">
+            {roles.map(role => (
+              <article key={role.role_id} className="control-panel-card">
+                <header className="control-panel-card-header">{role.role_name}</header>
+                <div className="control-panel-card-body">
+                  <p className="control-panel-permission-title">Permissions:</p>
+                  <ul>
+                    {(role.permissions ?? []).map(permission => (
+                      <li key={`${role.role_id}-${permission}`}>{permission}</li>
+                    ))}
+                  </ul>
+                  <button type="button" className="control-panel-permission-btn" onClick={() => openRoleEditor(role)}>
+                    Edit Permissions
                   </button>
-                </span>
-              </div>
+                </div>
+              </article>
             ))}
           </div>
-        </>
-      )}
+        )}
 
-      {activeTab === "Logs" && (
-        <div className="control-panel-table-wrap" role="table" aria-label="Control panel logs table">
-          <div className="control-panel-table-header" role="row">
-            <span role="columnheader">ID</span>
-            <span role="columnheader">User</span>
-            <span role="columnheader">Action</span>
-            <span role="columnheader">Target</span>
-            <span role="columnheader">Date</span>
-          </div>
-          {logs.map(log => (
-            <div key={`log-${log.id}`} className="control-panel-table-row" role="row">
-              <span role="cell">{log.id}</span>
-              <span role="cell">{log.user}</span>
-              <span role="cell">{log.action}</span>
-              <span role="cell">{log.target}</span>
-              <span role="cell">{log.date}</span>
+        {activeTab === "Search" && (
+          <>
+            <div className="control-panel-search-bar">
+              <input
+                type="search"
+                placeholder="Search a User..."
+                aria-label="Search a User"
+                value={searchTerm}
+                onChange={event => setSearchTerm(event.target.value)}
+              />
             </div>
-          ))}
-        </div>
-      )}
+            <div className="control-panel-table-wrapper">
+              <table className="control-panel-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Full Name</th>
+                    <th>Role</th>
+                    <th>Position</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredUsers.map(user => (
+                    <tr key={`search-row-${user.id}`}>
+                      <td>{user.id}</td>
+                      <td>{user.fullName}</td>
+                      <td>{user.role}</td>
+                      <td>{user.position}</td>
+                      <td>
+                        <button
+                          type="button"
+                          className="control-panel-permission-btn"
+                          onClick={() => openUserPermissions(user)}
+                        >
+                          Permissions
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
 
-      {activeTab === "User Archives" && (
-        <div className="control-panel-table-wrap" role="table" aria-label="User archives table">
-          <div className="control-panel-table-header" role="row">
-            <span role="columnheader">ID</span>
-            <span role="columnheader">Full Name</span>
-            <span role="columnheader">Position</span>
-            <span role="columnheader">Action</span>
+        {activeTab === "Logs" && (
+          <div className="control-panel-table-wrapper control-panel-logs-wrapper">
+            <table className="control-panel-table control-panel-logs-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>User</th>
+                  <th>Action</th>
+                  <th>Target</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {logs.map(log => (
+                  <tr key={`log-${log.id}`}>
+                    <td>{log.id}</td>
+                    <td>{log.user}</td>
+                    <td>{log.action}</td>
+                    <td>{log.target}</td>
+                    <td>{log.date}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-          {archivedUsers.map(user => (
-            <div key={`archive-row-${user.employee_id}`} className="control-panel-table-row" role="row">
-              <span role="cell">{user.employee_id}</span>
-              <span role="cell">{user.fullName}</span>
-              <span role="cell">{user.position}</span>
-              <span role="cell">
-                <button type="button" className="btn secondary" onClick={() => restoreUser(user.employee_id)}>
-                  Restore
-                </button>
-                <button type="button" className="btn" onClick={() => deleteUser(user.employee_id)}>
-                  Delete Permanently
-                </button>
-              </span>
-            </div>
-          ))}
-        </div>
-      )}
+        )}
+
+        {activeTab === "User Archives" && (
+          <div className="control-panel-table-wrapper control-panel-archive-wrapper">
+            <table className="control-panel-table control-panel-archive-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Full Name</th>
+                  <th>Position</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {archivedUsers.map(user => (
+                  <tr key={`archive-row-${user.employee_id}`}>
+                    <td>{user.employee_id}</td>
+                    <td>{user.fullName}</td>
+                    <td>{user.position}</td>
+                    <td className="control-panel-archive-actions">
+                      <button type="button" className="control-panel-restore-btn" onClick={() => restoreUser(user.employee_id)}>
+                        Restore
+                      </button>
+                      <button type="button" className="control-panel-delete-btn" onClick={() => deleteUser(user.employee_id)}>
+                        Delete Permanently
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
 
       {selectedRole && (
-        <div className="modal-overlay" role="presentation" onClick={() => setSelectedRole(null)}>
+        <div className="control-panel-modal-overlay" role="presentation" onClick={() => setSelectedRole(null)}>
           <div
-            className="modal-card permission-modal"
+            className="control-panel-modal"
             role="dialog"
             aria-modal="true"
             aria-label={`Edit ${selectedRole.role_name} permissions`}
             onClick={event => event.stopPropagation()}
           >
-            <h3 className="permission-modal-title">{selectedRole.role_name}</h3>
-            <div className="permission-modal-list" role="group" aria-label={`${selectedRole.role_name} permissions`}>
+            <h3>{selectedRole.role_name}</h3>
+            <div className="control-panel-permission-list" role="group" aria-label={`${selectedRole.role_name} permissions`}>
               {allPermissions.map(permission => (
-                <label key={`permission-toggle-${selectedRole.role_id}-${permission}`} className="permission-modal-item">
+                <label key={`permission-toggle-${selectedRole.role_id}-${permission}`} className="control-panel-permission-item">
                   <input
                     type="checkbox"
                     checked={tempPermissions.includes(permission)}
@@ -286,11 +312,11 @@ export default function ControlPanelSection() {
                 </label>
               ))}
             </div>
-            <div className="permission-modal-actions">
-              <button type="button" className="btn secondary" onClick={() => setSelectedRole(null)}>
+            <div className="control-panel-modal-actions">
+              <button type="button" className="control-panel-cancel-btn" onClick={() => setSelectedRole(null)}>
                 Cancel
               </button>
-              <button type="button" className="btn permission-save-btn" onClick={saveRolePermissions}>
+              <button type="button" className="control-panel-apply-btn" onClick={saveRolePermissions}>
                 Save
               </button>
             </div>
@@ -299,18 +325,18 @@ export default function ControlPanelSection() {
       )}
 
       {selectedUser && (
-        <div className="modal-overlay" role="presentation" onClick={() => setSelectedUser(null)}>
+        <div className="control-panel-modal-overlay" role="presentation" onClick={() => setSelectedUser(null)}>
           <div
-            className="modal-card permission-modal"
+            className="control-panel-modal"
             role="dialog"
             aria-modal="true"
             aria-label={`Edit ${selectedUser.fullName} permissions`}
             onClick={event => event.stopPropagation()}
           >
-            <h3 className="permission-modal-title">{selectedUser.fullName}</h3>
-            <div className="permission-modal-list" role="group" aria-label={`${selectedUser.fullName} permissions`}>
+            <h3>{selectedUser.fullName}</h3>
+            <div className="control-panel-permission-list" role="group" aria-label={`${selectedUser.fullName} permissions`}>
               {userPermissions.map(permission => (
-                <label key={`user-permission-toggle-${permission.permission_id}`} className="permission-modal-item">
+                <label key={`user-permission-toggle-${permission.permission_id}`} className="control-panel-permission-item">
                   <input
                     type="checkbox"
                     checked={permission.allowed === 1}
@@ -320,11 +346,11 @@ export default function ControlPanelSection() {
                 </label>
               ))}
             </div>
-            <div className="permission-modal-actions">
-              <button type="button" className="btn secondary" onClick={() => setSelectedUser(null)}>
+            <div className="control-panel-modal-actions">
+              <button type="button" className="control-panel-cancel-btn" onClick={() => setSelectedUser(null)}>
                 Cancel
               </button>
-              <button type="button" className="btn permission-save-btn" onClick={saveUserPermissions}>
+              <button type="button" className="control-panel-apply-btn" onClick={saveUserPermissions}>
                 Save
               </button>
             </div>
