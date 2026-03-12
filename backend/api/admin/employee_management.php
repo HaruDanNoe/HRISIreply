@@ -4,19 +4,6 @@ include __DIR__ . "/../../config/auth.php";
 
 requireRole("super admin");
 
-function splitFullName(string $fullName): array {
-    $parts = preg_split('/\s+/', trim($fullName)) ?: [];
-    $firstName = $parts[0] ?? '';
-    $lastName = count($parts) > 1 ? array_pop($parts) : '';
-    $middleName = count($parts) > 2 ? implode(' ', array_slice($parts, 1)) : '';
-
-    return [
-        trim($firstName),
-        trim($middleName),
-        trim($lastName)
-    ];
-}
-
 function resolveEmployeeRoleId(mysqli $conn): ?int {
     $stmt = $conn->prepare("SELECT role_id FROM roles WHERE LOWER(role_name) LIKE '%employee%' LIMIT 1");
     if (!$stmt) {
@@ -79,18 +66,25 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 $data = json_decode(file_get_contents("php://input"), true);
 
-$fullName = trim((string)($data['fullname'] ?? ''));
-$email = strtolower(trim((string)($data['email'] ?? '')));
-$password = (string)($data['password'] ?? '');
+$firstName = trim((string)($data['first_name'] ?? ''));
+$middleName = trim((string)($data['middle_name'] ?? ''));
+$lastName = trim((string)($data['last_name'] ?? ''));
+$address = trim((string)($data['address'] ?? ''));
+$birthdate = trim((string)($data['birthdate'] ?? ''));
+$civilStatus = trim((string)($data['civil_status'] ?? ''));
+$contactNumber = trim((string)($data['contact_number'] ?? ''));
+$personalEmail = strtolower(trim((string)($data['personal_email'] ?? '')));
+$workEmail = strtolower(trim((string)($data['work_email'] ?? $data['email'] ?? '')));
+$password = (string)($data['password'] ?? 'Welcome123!');
 $position = trim((string)($data['position'] ?? ''));
 $account = trim((string)($data['account'] ?? ''));
 $employeeType = trim((string)($data['employee_type'] ?? ''));
-$employmentStatus = trim((string)($data['employment_status'] ?? ''));
+$employmentStatus = trim((string)($data['employment_status'] ?? 'Active'));
 $dateHired = trim((string)($data['date_hired'] ?? ''));
 
-if ($fullName === '' || $email === '' || $password === '') {
+if ($firstName === '' || $lastName === '' || $workEmail === '') {
     http_response_code(400);
-    exit(json_encode(["error" => "Full name, email, and password are required."]));
+    exit(json_encode(["error" => "First name, last name, and work email are required."]));
 }
 
 $employeeRoleId = resolveEmployeeRoleId($conn);
@@ -104,17 +98,16 @@ if (!$duplicateStmt) {
     http_response_code(500);
     exit(json_encode(["error" => "Unable to validate email."]));
 }
-$duplicateStmt->bind_param("s", $email);
+$duplicateStmt->bind_param("s", $workEmail);
 if (!$duplicateStmt->execute()) {
     http_response_code(500);
     exit(json_encode(["error" => "Unable to validate email."]));
 }
 if ($duplicateStmt->get_result()->fetch_assoc()) {
     http_response_code(409);
-    exit(json_encode(["error" => "Email already exists."]));
+    exit(json_encode(["error" => "Work email already exists."]));
 }
 
-[$firstName, $middleName, $lastName] = splitFullName($fullName);
 $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
 $conn->begin_transaction();
@@ -129,25 +122,31 @@ try {
         throw new Exception("Unable to prepare user insert statement.");
     }
 
-    $userStmt->bind_param("ssi", $email, $hashedPassword, $employeeRoleId);
+    $userStmt->bind_param("ssi", $workEmail, $hashedPassword, $employeeRoleId);
     if (!$userStmt->execute()) {
         throw new Exception("Unable to create user account.");
     }
 
     $userId = (int)$userStmt->insert_id;
+
     $employeeStmt = $conn->prepare(
         "INSERT INTO employees (
             user_id,
             first_name,
             middle_name,
             last_name,
+            address,
+            birthdate,
+            civil_status,
             email,
+            personal_email,
             position,
             account,
-            employee_type,
+            contact_number,
             employment_status,
+            employee_type,
             date_hired
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NULLIF(?, ''))"
+        ) VALUES (?, ?, ?, ?, ?, NULLIF(?, ''), ?, ?, ?, ?, ?, ?, ?, ?, NULLIF(?, ''))"
     );
 
     if (!$employeeStmt) {
@@ -155,16 +154,21 @@ try {
     }
 
     $employeeStmt->bind_param(
-        "isssssssss",
+        "issssssssssssss",
         $userId,
         $firstName,
         $middleName,
         $lastName,
-        $email,
+        $address,
+        $birthdate,
+        $civilStatus,
+        $workEmail,
+        $personalEmail,
         $position,
         $account,
-        $employeeType,
+        $contactNumber,
         $employmentStatus,
+        $employeeType,
         $dateHired
     );
 
@@ -179,13 +183,13 @@ try {
         "success" => true,
         "employee" => [
             "id" => $employeeId,
-            "fullname" => $fullName,
+            "fullname" => trim("{$firstName} {$middleName} {$lastName}"),
             "position" => $position,
             "account" => $account,
             "employee_type" => $employeeType,
             "employment_status" => $employmentStatus,
             "date_hired" => $dateHired,
-            "email" => $email
+            "email" => $workEmail
         ]
     ]);
 } catch (Throwable $error) {
@@ -193,4 +197,3 @@ try {
     http_response_code(500);
     echo json_encode(["error" => $error->getMessage()]);
 }
-
