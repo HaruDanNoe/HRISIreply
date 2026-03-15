@@ -2,8 +2,12 @@ import { useEffect, useMemo, useState } from "react";
 import { apiFetch } from "../api/api";
 
 
-function PermissionEditorModal({ title, selectedPermissionIds, permissionOptions, onClose, onSave }) {
+function PermissionEditorModal({ title, selectedPermissionIds, permissionOptions, onClose, onSave, isSaving = false, errorMessage = "" }) {
   const [draftPermissionIds, setDraftPermissionIds] = useState(selectedPermissionIds);
+
+  useEffect(() => {
+    setDraftPermissionIds(selectedPermissionIds);
+  }, [selectedPermissionIds]);
 
   const togglePermission = permissionId => {
     setDraftPermissionIds(current => {
@@ -36,9 +40,13 @@ function PermissionEditorModal({ title, selectedPermissionIds, permissionOptions
         </div>
 
         <div className="permission-modal-actions">
-          <button className="btn secondary" type="button" onClick={onClose}>Cancel</button>
-          <button className="btn permission-save-btn" type="button" onClick={handleSave}>Save</button>
+          <button className="btn secondary" type="button" onClick={onClose} disabled={isSaving}>Cancel</button>
+          <button className="btn permission-save-btn" type="button" onClick={handleSave} disabled={isSaving}>
+            {isSaving ? "Saving..." : "Save"}
+          </button>
         </div>
+
+        {errorMessage ? <p className="team-empty-note">{errorMessage}</p> : null}
       </div>
     </div>
   );
@@ -53,6 +61,8 @@ export default function ControlPanelSection() {
   const [editingRoleId, setEditingRoleId] = useState("");
   const [editingUserId, setEditingUserId] = useState("");
   const [loadingRolePermissions, setLoadingRolePermissions] = useState(true);
+  const [savingUserPermissions, setSavingUserPermissions] = useState(false);
+  const [userSaveError, setUserSaveError] = useState("");
 
   useEffect(() => {
     let mounted = true;
@@ -156,6 +166,9 @@ export default function ControlPanelSection() {
     const user = userPermissions.find(item => item.id === editingUserId);
     if (!user) return;
 
+    setSavingUserPermissions(true);
+    setUserSaveError("");
+
     try {
       const response = await apiFetch("api/admin/control_panel_user_permissions.php", {
         method: "POST",
@@ -174,8 +187,11 @@ export default function ControlPanelSection() {
         email: item.email,
         permissions: Array.isArray(item.permissions) ? item.permissions : []
       })));
-    } finally {
       setEditingUserId("");
+      } catch (error) {
+      setUserSaveError(error?.error ?? "Unable to save user permissions.");
+    } finally {
+      setSavingUserPermissions(false);
     }
   };
 
@@ -262,7 +278,10 @@ export default function ControlPanelSection() {
                 <button
                   className="btn permission-edit-btn"
                   type="button"
-                  onClick={() => setEditingUserId(userItem.id)}
+                  onClick={() => {
+                    setUserSaveError("");
+                    setEditingUserId(userItem.id);
+                  }}
                 >
                   Edit Permission
                 </button>
@@ -291,6 +310,8 @@ export default function ControlPanelSection() {
           permissionOptions={permissionOptions}
           onClose={() => setEditingUserId("")}
           onSave={handleSaveUserPermissions}
+          isSaving={savingUserPermissions}
+          errorMessage={userSaveError}
         />
       ) : null}
     </section>
