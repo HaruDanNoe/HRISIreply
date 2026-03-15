@@ -19,6 +19,96 @@ const initialEmployeeForm = {
   date_hired: ""
 };
 
+const employmentPositions = [
+  "President",
+  "HR Lead",
+  "Service Delivery Manager",
+  "HR Coordinator",
+  "IT Administrator",
+  "Administrative Support",
+  "Accounting",
+  "Accounting Associate",
+  "Sr. Recruitment Specialist",
+  "Jr. Recruitment Specialist",
+  "Head of Training",
+  "Tier 1 Technical Support",
+  "Tier 2 Technical Support",
+  "Tier 3 Technical Support",
+  "NOC Tier 1 Support",
+  "NOC Tier 2 Support",
+  "NOC Tier 3 Support",
+  "SIP NOC Support Engineer",
+  "VOIP Support Technician 1",
+  "VOIP Support Technician 2",
+  "Help Desk Support 1",
+  "Help Desk Support 2",
+  "Junior Support Engineer",
+  "Software QA Engineer",
+  "Project Coordinator",
+  "Pre Sales Support",
+  "LNP Specialist",
+  "Carrier Specialist",
+  "Order Manager",
+  "Customer Support Representative",
+  "Billing Coordinator",
+  "PHP Developer",
+  "Full Stack Developer",
+  "JAVA Developer",
+  "Technical Support Engineer",
+  "Graphic Designer",
+  "Bookkeeper",
+  "Technical Trainer",
+  "Junior IT Technician"
+];
+
+const employmentAccounts = [
+  "iReply Back Office Services",
+  "In-Telecom Consulting",
+  "SIPPIO",
+  "Teammate Technology LLC",
+  "Viirtue LLC",
+  "RingLogix Technologies",
+  "RabbitRun",
+  "Telco Experts",
+  "Crexendo",
+  "Advanced Network Solutions",
+  "NUSO",
+  "Sourcetoad",
+  "ATL Communications",
+  "Total CX",
+  "Element IQ",
+  "Telepath",
+  "Vitale ENT",
+  "Cloud Service Networks",
+  "Business VOIP",
+  "Rotolo - Bravo 1",
+  "Advanced Data Infrastructure",
+  "Rotolo - Oxfresh",
+  "Level1 - YDC",
+  "VoxRush",
+  "Clarity Voice",
+  "Spectrum VOIP",
+  "Rotolo",
+  "test client",
+  "VoIP CX",
+  "VOIP.MS",
+  "Rotolo - Rainbow Restoration",
+  "UnitedCloud Inc.",
+  "Sonicetel",
+  "YD Level 1",
+  "Palmers Relocations",
+  "Atheral",
+  "Numhub",
+  "Internship",
+  "Advanced Network Services",
+  "Rotolo (Valet Waste)",
+  "Recent Communication",
+  "Kevlar IT Solutions",
+  "Smart Choice"
+];
+
+const employeeTypes = ["Regular", "Probationary", "Contractual", "Intern"];
+
 const formatDate = dateString => {
   if (!dateString) return "—";
   const date = new Date(dateString);
@@ -320,9 +410,30 @@ export default function EmployeesSection() {
               {addEmployeeActiveTab === "employment" && (
                 <div className="add-employee-tab-panel" role="tabpanel">
                   <div className="add-employee-grid">
-                    <label className="form-field" htmlFor="employee-position"><select id="employee-position" name="position" value={addEmployeeForm.position} onChange={handleAddEmployeeChange}><option value="">Select Position</option><option value="Customer Support">Customer Support</option><option value="Team Leader">Team Leader</option><option value="QA Specialist">QA Specialist</option></select></label>
-                    <label className="form-field" htmlFor="employee-account"><select id="employee-account" name="account" value={addEmployeeForm.account} onChange={handleAddEmployeeChange}><option value="">Select Account</option><option value="Retail">Retail</option><option value="Healthcare">Healthcare</option><option value="Telecom">Telecom</option></select></label>
-                    <label className="form-field" htmlFor="employee-type"><select id="employee-type" name="employee_type" value={addEmployeeForm.employee_type} onChange={handleAddEmployeeChange}><option value="">Select Employee Type</option><option value="Regular">Regular</option><option value="Probationary">Probationary</option><option value="Contractual">Contractual</option></select></label>
+                    <label className="form-field" htmlFor="employee-position">
+                      <select id="employee-position" name="position" value={addEmployeeForm.position} onChange={handleAddEmployeeChange}>
+                        <option value="">Select Position</option>
+                        {employmentPositions.map(position => (
+                          <option key={position} value={position}>{position}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="form-field" htmlFor="employee-account">
+                      <select id="employee-account" name="account" value={addEmployeeForm.account} onChange={handleAddEmployeeChange}>
+                        <option value="">Select Account</option>
+                        {employmentAccounts.map(account => (
+                          <option key={account} value={account}>{account}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="form-field" htmlFor="employee-type">
+                      <select id="employee-type" name="employee_type" value={addEmployeeForm.employee_type} onChange={handleAddEmployeeChange}>
+                        <option value="">Select Employee Type</option>
+                        {employeeTypes.map(employeeType => (
+                          <option key={employeeType} value={employeeType}>{employeeType}</option>
+                        ))}
+                      </select>
+                    </label>
                   </div>
                 </div>
               )}
@@ -378,9 +489,30 @@ export default function EmployeesSection() {
               {editEmployeeActiveTab === "employment" && (
                 <div className="add-employee-tab-panel" role="tabpanel">
                   <div className="add-employee-grid">
-                    <label className="form-field" htmlFor="edit-employee-position"><select id="edit-employee-position" name="position" value={editEmployeeForm.position} onChange={handleEditEmployeeChange}><option value="">Select Position</option><option value="Customer Support">Customer Support</option><option value="Team Leader">Team Leader</option><option value="QA Specialist">QA Specialist</option></select></label>
-                    <label className="form-field" htmlFor="edit-employee-account"><select id="edit-employee-account" name="account" value={editEmployeeForm.account} onChange={handleEditEmployeeChange}><option value="">Select Account</option><option value="Retail">Retail</option><option value="Healthcare">Healthcare</option><option value="Telecom">Telecom</option></select></label>
-                    <label className="form-field" htmlFor="edit-employee-type"><select id="edit-employee-type" name="employee_type" value={editEmployeeForm.employee_type} onChange={handleEditEmployeeChange}><option value="">Select Employee Type</option><option value="Regular">Regular</option><option value="Probationary">Probationary</option><option value="Contractual">Contractual</option></select></label>
+                    <label className="form-field" htmlFor="edit-employee-position">
+                      <select id="edit-employee-position" name="position" value={editEmployeeForm.position} onChange={handleEditEmployeeChange}>
+                        <option value="">Select Position</option>
+                        {employmentPositions.map(position => (
+                          <option key={position} value={position}>{position}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="form-field" htmlFor="edit-employee-account">
+                      <select id="edit-employee-account" name="account" value={editEmployeeForm.account} onChange={handleEditEmployeeChange}>
+                        <option value="">Select Account</option>
+                        {employmentAccounts.map(account => (
+                          <option key={account} value={account}>{account}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="form-field" htmlFor="edit-employee-type">
+                      <select id="edit-employee-type" name="employee_type" value={editEmployeeForm.employee_type} onChange={handleEditEmployeeChange}>
+                        <option value="">Select Employee Type</option>
+                        {employeeTypes.map(employeeType => (
+                          <option key={employeeType} value={employeeType}>{employeeType}</option>
+                        ))}
+                      </select>
+                    </label>
                   </div>
                 </div>
               )}
