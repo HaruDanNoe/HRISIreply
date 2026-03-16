@@ -101,6 +101,12 @@ export default function DataPanel({
   }, [type, records, dateStartFilter, dateEndFilter, searchQuery, personField]);
 
   if (type === "attendance") {
+    const attendanceColumnCount = 6 + (personField ? 1 : 0) + (onEditRow ? 1 : 0);
+    const attendanceGridStyle = {
+      gridTemplateColumns: `repeat(${attendanceColumnCount}, minmax(140px, 1fr))`,
+      minWidth: `${attendanceColumnCount * 140}px`
+    };
+
     return (
       <div className="employee-attendance-history-table" role="table" aria-label={config.title}>
         <div className="attendance-history-range-filter" role="group" aria-label="Filter attendance history">
@@ -124,34 +130,41 @@ export default function DataPanel({
           </label>
         </div>
 
-        <div className="employee-attendance-history-header" role="row">
-          <span role="columnheader">Date</span>
-          <span role="columnheader">Time In</span>
-          <span role="columnheader">Time Out</span>
-          <span role="columnheader">Status</span>
-          <span role="columnheader">Cluster</span>
-          {personField && <span role="columnheader">{personLabel}</span>}
-          {onEditRow && <span role="columnheader">Action</span>}
-        </div>
-
-        {filteredRecords.length > 0 ? filteredRecords.map(item => (
-          <div key={`${item.id ?? item.attendance_id}-${item.updated_at ?? item.time_in_at ?? "entry"}`} className="employee-attendance-history-row" role="row">
-            <span role="cell">{formatDateTimeLabel(item.time_in_at ?? item.time_out_at ?? item.updated_at)}</span>
-            <span role="cell">{formatDateTimeLabel(item.time_in_at)}</span>
-            <span role="cell">{formatDateTimeLabel(item.time_out_at)}</span>
-            <span role="cell">{item.attendance_tag ?? item.tag ?? "Pending"}</span>
-            <span role="cell">{item.cluster_name ?? "—"}</span>
-            {personField && <span role="cell">{item[personField] ?? "—"}</span>}
-            <span role="cell">{item.attendance_note ?? item.note ?? "—"}</span>
-            {onEditRow && (
-              <span role="cell">
-                <button className="btn" type="button" onClick={() => onEditRow(item)}>Edit</button>
-              </span>
-            )}
+        <div className="employee-attendance-history-scroll">
+          <div className="employee-attendance-history-header" role="row" style={attendanceGridStyle}>
+            <span role="columnheader">Date</span>
+            <span role="columnheader">Time In</span>
+            <span role="columnheader">Time Out</span>
+            <span role="columnheader">Status</span>
+            <span role="columnheader">Cluster</span>
+            <span role="columnheader">Note</span>
+            {personField && <span role="columnheader">{personLabel}</span>}
+            {onEditRow && <span role="columnheader">Action</span>}
           </div>
-        )) : (
-          <div className="empty-state">No attendance records match the selected filters.</div>
-        )}
+        {filteredRecords.length > 0 ? filteredRecords.map(item => (
+            <div
+              key={`${item.id ?? item.attendance_id}-${item.updated_at ?? item.time_in_at ?? "entry"}`}
+              className="employee-attendance-history-row"
+              role="row"
+              style={attendanceGridStyle}
+            >
+              <span role="cell">{formatDateTimeLabel(item.time_in_at ?? item.time_out_at ?? item.updated_at)}</span>
+              <span role="cell">{formatDateTimeLabel(item.time_in_at)}</span>
+              <span role="cell">{formatDateTimeLabel(item.time_out_at)}</span>
+              <span role="cell">{item.attendance_tag ?? item.tag ?? "Pending"}</span>
+              <span role="cell">{item.cluster_name ?? "—"}</span>
+              <span role="cell">{item.attendance_note ?? item.note ?? "—"}</span>
+              {personField && <span role="cell">{item[personField] ?? "—"}</span>}
+              {onEditRow && (
+                <span role="cell">
+                  <button className="btn" type="button" onClick={() => onEditRow(item)}>Edit</button>
+                </span>
+              )}
+            </div>
+          )) : (
+            <div className="empty-state">No attendance records match the selected filters.</div>
+          )}
+        </div>
       </div>
     );
   }

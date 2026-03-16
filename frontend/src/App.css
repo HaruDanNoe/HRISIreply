@@ -2104,6 +2104,11 @@ body {
   border: 1px solid #e5e7eb;
   border-radius: 8px;
   overflow: hidden;
+  background: #fff;
+}
+
+.employee-attendance-history-scroll {
+  overflow-x: auto;
 }
 
 .employee-attendance-history-header,

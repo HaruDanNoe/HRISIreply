@@ -630,7 +630,6 @@ const handleOpenRejectModal = cluster => {
             <DataPanel
               type="attendance"
               records={coachAttendance}
-              onEditRow={openAttendanceEdit}
               externalDateFilter={attendanceDate}
               onExternalDateFilterChange={setAttendanceDate}
             />
