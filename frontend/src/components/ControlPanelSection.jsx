@@ -63,6 +63,10 @@ export default function ControlPanelSection() {
   const [loadingRolePermissions, setLoadingRolePermissions] = useState(true);
   const [savingUserPermissions, setSavingUserPermissions] = useState(false);
   const [userSaveError, setUserSaveError] = useState("");
+  const [archivedUsers, setArchivedUsers] = useState([]);
+  const [loadingArchivedUsers, setLoadingArchivedUsers] = useState(false);
+  const [archivedUsersError, setArchivedUsersError] = useState("");
+  const [archiveActionEmployeeId, setArchiveActionEmployeeId] = useState(null);
 
   useEffect(() => {
     let mounted = true;
@@ -135,6 +139,25 @@ export default function ControlPanelSection() {
   const editingRole = rolePermissions.find(item => item.id === editingRoleId);
   const editingUser = userPermissions.find(item => item.id === editingUserId);
 
+  const fetchArchivedUsers = async () => {
+    setLoadingArchivedUsers(true);
+    setArchivedUsersError("");
+    try {
+      const response = await apiFetch("api/admin/employee_management.php?archived=1");
+      setArchivedUsers(Array.isArray(response) ? response : []);
+    } catch (error) {
+      setArchivedUsers([]);
+      setArchivedUsersError(error?.error ?? error?.message ?? "Unable to load archived users.");
+    } finally {
+      setLoadingArchivedUsers(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!showUserArchives) return;
+    fetchArchivedUsers();
+  }, [showUserArchives]);
+
   const handleSaveRolePermissions = async permissionIds => {
     const role = rolePermissions.find(item => item.id === editingRoleId);
     if (!role) return;
@@ -192,6 +215,54 @@ export default function ControlPanelSection() {
       setUserSaveError(error?.error ?? "Unable to save user permissions.");
     } finally {
       setSavingUserPermissions(false);
+    }
+  };
+
+  const filteredArchivedUsers = useMemo(() => {
+    const value = searchTerm.trim().toLowerCase();
+    if (!value) return archivedUsers;
+
+    return archivedUsers.filter(item => {
+      const fullName = String(item.fullname ?? "").toLowerCase();
+      const email = String(item.email ?? "").toLowerCase();
+      const position = String(item.position ?? "").toLowerCase();
+      const status = String(item.employment_status ?? "").toLowerCase();
+
+      return fullName.includes(value)
+        || email.includes(value)
+        || position.includes(value)
+        || status.includes(value)
+        || String(item.id ?? "").toLowerCase().includes(value);
+    });
+  }, [archivedUsers, searchTerm]);
+
+  const handleArchiveAction = async (employeeId, action) => {
+    const isRestore = action === "restore";
+    const confirmationMessage = isRestore
+      ? "Restore this archived user?"
+      : "Permanently delete this archived user record? This cannot be undone.";
+
+    if (!window.confirm(confirmationMessage)) {
+      return;
+    }
+
+    setArchiveActionEmployeeId(employeeId);
+    setArchivedUsersError("");
+
+    try {
+      await apiFetch("api/admin/employee_management.php", {
+        method: "PATCH",
+        body: JSON.stringify({
+          employee_id: employeeId,
+          action
+        })
+      });
+
+      setArchivedUsers(current => current.filter(item => item.id !== employeeId));
+    } catch (error) {
+      setArchivedUsersError(error?.error ?? error?.message ?? "Unable to update archived user.");
+    } finally {
+      setArchiveActionEmployeeId(null);
     }
   };
 
@@ -253,6 +324,8 @@ export default function ControlPanelSection() {
         onChange={event => setSearchTerm(event.target.value)}
         placeholder={showRolePermissions
           ? "Search role or permission..."
+          : showUserArchives
+            ? "Search archived user, email, or position..."
           : "Search user, role, or permission..."}
       />
 
@@ -317,7 +390,49 @@ export default function ControlPanelSection() {
         ) : showLogs ? (
         <p className="team-empty-note">Logs tab is ready for activity history content.</p>
       ) : (
-        <p className="team-empty-note">User Archives tab is ready for archived user records.</p>
+        <>
+          {archivedUsersError ? <p className="team-empty-note">{archivedUsersError}</p> : null}
+          {loadingArchivedUsers ? (
+            <p className="team-empty-note">Loading archived users...</p>
+          ) : filteredArchivedUsers.length === 0 ? (
+            <p className="team-empty-note">No archived users found.</p>
+          ) : (
+            <div className="control-panel-table-wrap" role="table" aria-label="User archives table">
+              <div className="control-panel-table-header" role="row">
+                <span role="columnheader">ID</span>
+                <span role="columnheader">User</span>
+                <span role="columnheader">Position</span>
+                <span role="columnheader">Action</span>
+              </div>
+
+              {filteredArchivedUsers.map(userItem => (
+                <div key={userItem.id} className="control-panel-table-row" role="row">
+                  <span role="cell">{userItem.id}</span>
+                  <span role="cell">{userItem.fullname || userItem.email || `Employee #${userItem.id}`}</span>
+                  <span role="cell">{userItem.position || "—"}</span>
+                  <span role="cell" className="user-archive-actions">
+                    <button
+                      className="btn secondary"
+                      type="button"
+                      onClick={() => handleArchiveAction(userItem.id, "restore")}
+                      disabled={archiveActionEmployeeId === userItem.id}
+                    >
+                      {archiveActionEmployeeId === userItem.id ? "Updating..." : "Restore"}
+                    </button>
+                    <button
+                      className="btn danger"
+                      type="button"
+                      onClick={() => handleArchiveAction(userItem.id, "permanent_delete")}
+                      disabled={archiveActionEmployeeId === userItem.id}
+                    >
+                      Permanently Delete
+                    </button>
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
       )}
 
       {editingRole ? (
