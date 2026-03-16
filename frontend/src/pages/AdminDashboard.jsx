@@ -688,23 +688,23 @@ const handleOpenRejectModal = cluster => {
               <>
                 <div className="table-card">
                   <div className="table-header">
-                    <div>Cluster Name</div>
                     <div>Coach</div>
+                    <div>Cluster Name</div>
                     <div>Members</div>
                     <div>Status</div>
                     <div>Action</div>
                   </div>
                   {clusters.map(cluster => (
                     <div key={cluster.id} className="table-row">
-                      <div className="table-cell">{cluster.name}</div>
                       <div className="table-cell">{cluster.coach}</div>
+                      <div className="table-cell">{cluster.name}</div>
                       <div className="table-cell">{cluster.members ?? 0}</div>
                       <div className="table-cell">
                         <span className={`badge ${cluster.status}`}>{cluster.status}</span>
                       </div>
                       <div className="table-cell">
                         <button className="btn primary" type="button" onClick={() => handleOpenScheduleModal(cluster)}>
-                          Manage
+                          Manage Team Coach Schedule
                         </button>
                       </div>
                     </div>
