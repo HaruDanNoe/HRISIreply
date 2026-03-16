@@ -1,7 +1,7 @@
 <?php
 include __DIR__ . "/../../config/database.php";
 include __DIR__ . "/../../config/auth.php";
-requireRole("admin");
+requireRole(["admin", "super admin"]);
 
 function getColumns(mysqli $conn, string $table): array {
     $columns = [];

@@ -1,7 +1,7 @@
 <?php
 include __DIR__ . "/../../config/database.php";
 include __DIR__ . "/../../config/auth.php";
-requireRole("admin");
+requireRole(["admin", "super admin"]);
 
 function hasTable(mysqli $conn, string $table): bool {
     $safe = $conn->real_escape_string($table);

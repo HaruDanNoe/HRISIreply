@@ -1,7 +1,7 @@
 <?php
 include __DIR__ . "/../../config/database.php";
 include __DIR__ . "/../../config/auth.php";
-requireRole("admin");
+requireRole(["admin", "super admin"]);
 
 $data = json_decode(file_get_contents("php://input"), true);
 $attendanceId = isset($data['attendance_id']) ? (int)$data['attendance_id'] : 0;
