@@ -158,6 +158,20 @@ export default function EmployeesSection() {
   const [editEmployeeForm, setEditEmployeeForm] = useState(initialEmployeeForm);
   const [deletingEmployeeId, setDeletingEmployeeId] = useState(null);
 
+ // Info modal states 
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
+
+  const handleOpenInfoModal = employee => {
+    setSelectedEmployee(employee);
+    setIsInfoModalOpen(true);
+  };
+
+  const handleCloseInfoModal = () => {
+    setSelectedEmployee(null);
+    setIsInfoModalOpen(false);
+  };
+
   const fetchEmployees = useCallback(async () => {
     if (!canViewEmployeeList) {
       setEmployees([]);
@@ -185,6 +199,20 @@ export default function EmployeesSection() {
 
   const handleAddEmployeeChange = event => {
     const { name, value } = event.target;
+
+    if (name === "contact_number") {
+      let cleaned = value.replace(/\D/g, ""); // remove non-numbers
+
+      // limit to 11 digits
+      cleaned = cleaned.slice(0, 11);
+
+      setAddEmployeeForm(current => ({
+        ...current,
+        [name]: cleaned
+      }));
+      return;
+    }
+
     setAddEmployeeForm(current => ({ ...current, [name]: value }));
   };
 
@@ -200,6 +228,12 @@ export default function EmployeesSection() {
     event.preventDefault();
     if (!canAddEmployee || isAddingEmployee) return;
 
+    const phone = addEmployeeForm.contact_number;
+
+    if (!/^09\d{9}$/.test(phone)) {
+      setAddEmployeeError("Contact number must start with 09 and be exactly 11 digits.");
+      return;
+    }
     setIsAddingEmployee(true);
     setAddEmployeeError("");
     try {
@@ -229,6 +263,18 @@ export default function EmployeesSection() {
 
   const handleEditEmployeeChange = event => {
     const { name, value } = event.target;
+
+    if (name === "contact_number") {
+      let cleaned = value.replace(/\D/g, "");
+      cleaned = cleaned.slice(0, 11);
+
+      setEditEmployeeForm(current => ({
+        ...current,
+        [name]: cleaned
+      }));
+      return;
+    }
+
     setEditEmployeeForm(current => ({ ...current, [name]: value }));
   };
 
@@ -251,10 +297,19 @@ export default function EmployeesSection() {
 
   const handleSubmitEditEmployee = async event => {
     event.preventDefault();
+
     if (!canEditEmployee || isSavingEditEmployee || !editingEmployeeId) return;
+
+    const phone = editEmployeeForm.contact_number;
+
+    if (!/^09\d{9}$/.test(phone)) {
+      setEditEmployeeError("Contact number must start with 09 and be exactly 11 digits.");
+      return;
+    }
 
     setIsSavingEditEmployee(true);
     setEditEmployeeError("");
+
     try {
       await apiFetch("api/admin/employee_management.php", {
         method: "PUT",
@@ -348,7 +403,15 @@ export default function EmployeesSection() {
               <div className="table-cell">{employee.employee_type || "—"}</div>
               <div className="table-cell">{employee.employment_status || "—"}</div>
               <div className="table-cell">{formatDate(employee.date_hired)}</div>
-              <div className="table-cell muted">{employee.email || "—"}</div>
+              <div className="table-cell">
+                <button
+                  className="btn secondary"
+                  type="button"
+                  onClick={() => handleOpenInfoModal(employee)}
+                >
+                  Info
+                </button>
+              </div>
               <div className="table-cell employee-actions-cell">
                 <div className="employee-actions" role="group" aria-label={`Actions for ${employee.fullname || employee.email || "employee"}`}>
                   {canEditEmployee ? (
@@ -368,6 +431,61 @@ export default function EmployeesSection() {
         </div>
       )}
 
+      {isInfoModalOpen && selectedEmployee && (
+        <div className="modal-overlay" role="dialog" aria-modal="true">
+          <div className="modal-card add-employee-modal">
+            <div className="modal-header">
+              <div>
+                <div className="modal-title">Employee Information</div>
+                <div className="modal-subtitle">
+                  View full employee details
+                </div>
+              </div>
+              <button
+                className="btn link modal-close-btn"
+                type="button"
+                onClick={handleCloseInfoModal}
+              >
+                Close
+              </button>
+            </div>
+
+            <div className="modal-body">
+              <div className="add-employee-grid">
+
+                <div><strong>Full Name:</strong><br />{selectedEmployee.fullname || "—"}</div>
+                <div><strong>Email:</strong><br />{selectedEmployee.email || "—"}</div>
+
+                <div><strong>Contact Number:</strong><br />{selectedEmployee.contact_number || "—"}</div>
+                <div><strong>Civil Status:</strong><br />{selectedEmployee.civil_status || "—"}</div>
+
+                <div className="add-employee-full-width">
+                  <strong>Address:</strong><br />
+                  {selectedEmployee.address || "—"}
+                </div>
+
+                <div><strong>Birthdate:</strong><br />{formatDate(selectedEmployee.birthdate)}</div>
+                <div><strong>Date Hired:</strong><br />{formatDate(selectedEmployee.date_hired)}</div>
+
+                <div><strong>Position:</strong><br />{selectedEmployee.position || "—"}</div>
+                <div><strong>Account:</strong><br />{selectedEmployee.account || "—"}</div>
+
+                <div><strong>Employee Type:</strong><br />{selectedEmployee.employee_type || "—"}</div>
+                <div><strong>Status:</strong><br />{selectedEmployee.employment_status || "—"}</div>
+
+              </div>
+            </div>
+
+            <div className="add-employee-footer-actions">
+              <button className="btn primary" onClick={handleCloseInfoModal}>
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      
       {isAddEmployeeModalOpen && (
         <div className="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="add-employee-title">
           <div className="modal-card add-employee-modal">
@@ -395,7 +513,19 @@ export default function EmployeesSection() {
                     <label className="form-field add-employee-last-name" htmlFor="employee-last-name"><input id="employee-last-name" name="last_name" placeholder="Last Name" value={addEmployeeForm.last_name} onChange={handleAddEmployeeChange} required /></label>
                     <label className="form-field add-employee-full-width" htmlFor="employee-address"><input id="employee-address" name="address" placeholder="Address" value={addEmployeeForm.address} onChange={handleAddEmployeeChange} /></label>
                     <label className="form-field" htmlFor="employee-birthdate"><input id="employee-birthdate" type="date" name="birthdate" value={addEmployeeForm.birthdate} onChange={handleAddEmployeeChange} /></label>
-                    <label className="form-field" htmlFor="employee-contact-number"><input id="employee-contact-number" name="contact_number" placeholder="Contact Number" value={addEmployeeForm.contact_number} onChange={handleAddEmployeeChange} /></label>
+                    <label className="form-field" htmlFor="employee-contact-number">
+                    <input
+                        id="employee-contact-number"
+                        name="contact_number"
+                        placeholder="Contact Number"
+                        value={addEmployeeForm.contact_number}
+                        onChange={handleAddEmployeeChange}
+                        maxLength={11}
+                        inputMode="numeric"
+                        pattern="09[0-9]{9}"
+                        title="Contact number must start with 09 and be 11 digits"
+                      />
+                      </label>
                     <label className="form-field" htmlFor="employee-civil-status">
                       <select id="employee-civil-status" name="civil_status" value={addEmployeeForm.civil_status} onChange={handleAddEmployeeChange}>
                         <option value="">Civil Status</option><option value="Single">Single</option><option value="Married">Married</option><option value="Widowed">Widowed</option><option value="Separated">Separated</option>
@@ -474,7 +604,18 @@ export default function EmployeesSection() {
                     <label className="form-field add-employee-last-name" htmlFor="edit-employee-last-name"><input id="edit-employee-last-name" name="last_name" placeholder="Last Name" value={editEmployeeForm.last_name} onChange={handleEditEmployeeChange} required /></label>
                     <label className="form-field add-employee-full-width" htmlFor="edit-employee-address"><input id="edit-employee-address" name="address" placeholder="Address" value={editEmployeeForm.address} onChange={handleEditEmployeeChange} /></label>
                     <label className="form-field" htmlFor="edit-employee-birthdate"><input id="edit-employee-birthdate" type="date" name="birthdate" value={editEmployeeForm.birthdate} onChange={handleEditEmployeeChange} /></label>
-                    <label className="form-field" htmlFor="edit-employee-contact-number"><input id="edit-employee-contact-number" name="contact_number" placeholder="Contact Number" value={editEmployeeForm.contact_number} onChange={handleEditEmployeeChange} /></label>
+                    <label className="form-field" htmlFor="edit-employee-contact-number">
+                    <input
+                      id="edit-employee-contact-number"
+                      name="contact_number"
+                      placeholder="Contact Number"
+                      value={editEmployeeForm.contact_number}
+                      onChange={handleEditEmployeeChange}
+                      maxLength={11}
+                      inputMode="numeric"
+                      pattern="09[0-9]{9}"
+                      title="Contact number must start with 09 and be 11 digits"
+                    /></label>
                     <label className="form-field" htmlFor="edit-employee-civil-status">
                       <select id="edit-employee-civil-status" name="civil_status" value={editEmployeeForm.civil_status} onChange={handleEditEmployeeChange}>
                         <option value="">Civil Status</option><option value="Single">Single</option><option value="Married">Married</option><option value="Widowed">Widowed</option><option value="Separated">Separated</option>
