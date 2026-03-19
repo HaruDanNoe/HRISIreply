@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "name": "hrisi-reply-frontend",
+  "name": "hrisi-reply",
   "cleanUrls": true,
   "rewrites": [
     {
@@ -8,8 +8,12 @@
       "destination": "https://dtfj.helioho.st/backendHRIS/backend/$1"
     },
     {
+      "source": "/(.*)",
+      "destination": "/frontend/$1"
+    },
+    {
       "source": "/((?!api-proxy/).*)",
-      "destination": "/index.html"
+      "destination": "/frontend/index.html"
     }
   ]
 }
