@@ -1,17 +1,13 @@
 <?php
 
-$allowed_origins = [
-    'http://localhost:5173',
-    'https://hrisi-reply.vercel.app', // Update with your actual Vercel production URL
-    'https://hrisi-reply-git-develop-harudannoe.vercel.app' // Example staging URL
-];
-
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 
-if (in_array($origin, $allowed_origins)) {
+// Allow localhost and any vercel.app domain
+if (
+    $origin === 'http://localhost:5173' || 
+    preg_match('/^https:\/\/.*\.vercel\.app$/', $origin)
+) {
     header("Access-Control-Allow-Origin: $origin");
-} else {
-    // Optional: Log unauthorized CORS attempts
 }
 
 header("Access-Control-Allow-Credentials: true");
