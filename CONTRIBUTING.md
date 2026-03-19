@@ -1,6 +1,6 @@
 # Contributing to HRISIreply
 
-Welcome to the team! To maintain a stable and conflict-free repository, please follow these workflow guidelines.
+To maintain a stable and conflict-free repository, please follow these workflow guidelines.
 
 ## 1. Branching Strategy
 - **`main`**: Production-only. Direct pushes are disabled.

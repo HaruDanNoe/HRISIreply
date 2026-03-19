@@ -17,20 +17,33 @@ The application is deployed as a split architecture: **Frontend on Vercel** and 
 
 ---
 
-## 2. Backend Deployment (HelioHost)
+## 2. Backend Deployment (Koyeb)
 
 ### Prerequisites
-- Active HelioHost account with cPanel/Plesk access.
-- Access to PHPMyAdmin and FTP/File Manager.
+- Koyeb account (Free tier available).
+- GitHub repository linked to Koyeb.
 
 ### Deployment Steps
-1.  **File Upload:** Upload the contents of the `backend/` directory to your HelioHost `public_html` (or a chosen subdirectory).
-2.  **Config Setup:** Update `backend/config/database.php` on the server with the production MySQL credentials (host, db, user, pass).
-3.  **Cross-Origin (CORS):** Ensure `backend/api/cors.php` correctly allows requests from your Vercel production and staging domains.
+1.  **Create Service:** In Koyeb, create a new "Web Service" and select your GitHub repository.
+2.  **Configuration:**
+    - **Buildpack/Runtime:** Select "PHP".
+    - **Work Directory:** Set this to `backend`.
+    - **Run Command:** (Optional) If using a custom port, ensure PHP is listening on `8000`.
+3.  **Environment Variables:** Add the following secrets in the Koyeb console:
+    - `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASS`, `DB_NAME`.
+    - `DB_SSL_CA`: (See SSL section below).
+4.  **Automatic Deployments:** Every push to `main` (Production) or `develop` (Staging) can be mapped to different Koyeb services for automated updates.
 
 ---
 
-## 3. Database Management (MySQL)
+## 3. Database Management (Aiven MySQL)
+
+### Connection & SSL
+Aiven requires SSL.
+1. Download the `ca.pem` from the Aiven console.
+2. In Koyeb, you can either:
+   - Upload the cert to your `backend/` directory (not recommended for public repos).
+   - **Recommended:** Store the content of `ca.pem` as a Koyeb Environment Variable or secret and write it to a temporary file during the build process.
 
 ### The Source of Truth
 The current schema is maintained in `docs/db/schema.sql`.
