@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "name": "hrisi-reply-frontend",
+  "framework": "vite",
+  "cleanUrls": true,
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
