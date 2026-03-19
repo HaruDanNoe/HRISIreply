@@ -9,10 +9,6 @@
     },
     {
       "source": "/(.*)",
-      "destination": "/frontend/$1"
-    },
-    {
-      "source": "/((?!api-proxy/).*)",
       "destination": "/frontend/index.html"
     }
   ]
