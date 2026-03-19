@@ -5,6 +5,10 @@
   "cleanUrls": true,
   "rewrites": [
     {
+      "source": "/api-proxy/:path*",
+      "destination": "https://dtfj.helioho.st/backendHRIS/backend/:path*"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
