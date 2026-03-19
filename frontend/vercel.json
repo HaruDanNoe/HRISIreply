@@ -1,15 +1,14 @@
 {
   "version": 2,
   "name": "hrisi-reply-frontend",
-  "framework": "vite",
   "cleanUrls": true,
   "rewrites": [
     {
-      "source": "/api-proxy/:path*",
-      "destination": "https://dtfj.helioho.st/backendHRIS/backend/:path*"
+      "source": "/api-proxy/(.*)",
+      "destination": "https://dtfj.helioho.st/backendHRIS/backend/$1"
     },
     {
-      "source": "/(.*)",
+      "source": "/((?!api-proxy/).*)",
       "destination": "/index.html"
     }
   ]
