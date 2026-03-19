@@ -65,6 +65,7 @@ $stmt->execute();
 $user = $stmt->get_result()->fetch_assoc();
 
 if ($user && password_verify($password, $user['password'])) {
+    // ... success logic ...
     $role = normalizeRole($user['role_name'] ?? '');
     $redirect = '/employee';
     if ($role === 'super admin') {
@@ -95,5 +96,11 @@ if ($user && password_verify($password, $user['password'])) {
     ]);
 } else {
     http_response_code(401);
-    echo json_encode(["error" => "Invalid credentials"]);
+    $debug = [
+        "email_used" => $email,
+        "user_found" => (bool)$user,
+        "password_match" => $user ? password_verify($password, $user['password']) : false,
+        "db_error" => $conn->error
+    ];
+    echo json_encode(["error" => "Invalid credentials", "debug" => $debug]);
 }
