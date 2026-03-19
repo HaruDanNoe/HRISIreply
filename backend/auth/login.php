@@ -12,8 +12,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
-include "../config/database.php";
-session_start();
+require_once __DIR__ . "/../config/database.php";
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 function normalizeRole(?string $roleName): string {
     $role = strtolower(trim((string)$roleName));
