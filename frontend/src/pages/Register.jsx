@@ -61,7 +61,10 @@ export default function Register() {
 
       window.location.href = "/login";
     } catch (err) {
-      setError(err.error || "Registration failed");
+      const msg = typeof err === 'string' 
+        ? err 
+        : (err.error || err.message || JSON.stringify(err));
+      setError(msg);
     } finally {
       setIsSubmitting(false);
     }

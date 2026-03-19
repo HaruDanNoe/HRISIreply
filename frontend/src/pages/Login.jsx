@@ -38,7 +38,11 @@ export default function Login() {
 
       window.location.href = redirectPath;
     } catch (err) {
-      setError(err.error || "Login failed");
+      // Ensure error is a string
+      const msg = typeof err === 'string' 
+        ? err 
+        : (err.error || err.message || JSON.stringify(err));
+      setError(msg);
     } finally {
       setIsSubmitting(false);
     }

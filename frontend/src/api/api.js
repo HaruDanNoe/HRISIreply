@@ -18,6 +18,10 @@ export async function apiFetch(endpoint, options = {}) {
   });
 
   const data = await res.json();
-  if (!res.ok) throw data;
+  if (!res.ok) {
+    // Extract a string message from the error object if it exists
+    const errorMsg = data.error || data.message || JSON.stringify(data);
+    throw { ...data, error: errorMsg };
+  }
   return data;
 }
