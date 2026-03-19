@@ -1,4 +1,4 @@
-const BASE_URL = (import.meta.env.VITE_API_URL ?? "http://localhost/HRISIreply/backend/api").replace(/\/$/, "");
+const BASE_URL = (import.meta.env.VITE_API_URL ?? "http://localhost/HRISIreply/backend").replace(/\/$/, "");
 function buildEndpointUrl(endpoint, method) {
   if ((method ?? "GET").toUpperCase() !== "GET") {
     return `${BASE_URL}/${endpoint}`;
