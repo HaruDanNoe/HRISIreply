@@ -2,12 +2,10 @@
 
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 
-// Allow localhost and any vercel.app domain
-if (
-    $origin === 'http://localhost:5173' || 
-    preg_match('/^https:\/\/.*\.vercel\.app$/', $origin)
-) {
+// Allow the requesting origin to ensure CORS works across all Vercel/Local environments
+if ($origin !== '') {
     header("Access-Control-Allow-Origin: $origin");
+    header("Vary: Origin");
 }
 
 header("Access-Control-Allow-Credentials: true");
