@@ -1,14 +1,11 @@
 {
-  "version": 2,
-  "name": "hrisi-reply-frontend",
-  "cleanUrls": true,
   "rewrites": [
     {
       "source": "/api-proxy/(.*)",
       "destination": "https://dtfj.helioho.st/backendHRIS/backend/$1"
     },
     {
-      "source": "/((?!api-proxy/).*)",
+      "source": "/(.*)",
       "destination": "/index.html"
     }
   ]
