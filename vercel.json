@@ -5,10 +5,14 @@
   "rewrites": [
     {
       "source": "/api-proxy/(.*)",
-      "destination": "https://dtfj.helioho.st/backendHRIS/backend/$1"
+      "destination": "https://selective-melodie-ireply-bd5411b8.koyeb.app/$1"
     },
     {
       "source": "/(.*)",
+      "destination": "/frontend/$1"
+    },
+    {
+      "source": "/((?!api-proxy/).*)",
       "destination": "/frontend/index.html"
     }
   ]
